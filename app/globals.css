@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+/*
+ * Kiko design tokens (UI_SPEC §6). Values are starting proposals: palette,
+ * typography and visual identity are still open decisions (Spec D10), so keep
+ * raw values here and reference tokens from components.
+ *
+ * Light theme only for the initial release; dark theme is not implied.
+ */
+@theme {
+  /* Color */
+  --color-background: #f6f7f5;
+  --color-surface: #ffffff;
+  --color-text: #1c1f24;
+  --color-muted-text: #5a6270;
+  --color-border: #d8dbe0;
+  --color-primary: #2f5d8a;
+  --color-primary-contrast: #ffffff;
+  --color-focus: #1f6fd1;
+  --color-success: #1f7a4d;
+  --color-warning: #8a5a00;
+  --color-error: #b42318;
+
+  /*
+   * Spacing: Tailwind's 4px base gives the proposed 4/8/12/16/24/32/48px scale
+   * as 1/2/3/4/6/8/12 (e.g. p-4 = 16px). Use only those steps.
+   */
+  --spacing: 0.25rem;
+
+  /* Radius */
+  --radius-control: 0.5rem;
+  --radius-panel: 1rem;
+
+  /*
+   * Typography. System font stacks avoid build-time font downloads until a
+   * font is chosen. Each stack must cover its script; Chinese lists both
+   * simplified and traditional faces because the script variant is undecided.
+   */
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-zh:
+    "PingFang SC", "PingFang TC", "Hiragino Sans GB", "Noto Sans CJK SC",
+    "Noto Sans SC", "Noto Sans TC", "Microsoft YaHei", "Microsoft JhengHei",
+    sans-serif;
+  --font-ja:
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP",
+    "Noto Sans JP", "Yu Gothic", Meiryo, sans-serif;
+  --font-ipa:
+    "Charis SIL", "Doulos SIL", "Gentium Plus", "Noto Sans", "Segoe UI",
+    "Lucida Sans Unicode", "Arial Unicode MS", sans-serif;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --text-transcript: 1.375rem;
+  --text-transcript--line-height: 1.8;
+  --text-character: clamp(4rem, 18vw, 8rem);
+  --text-character--line-height: 1.1;
+
+  /* Layout: max-w-reading, max-w-workspace */
+  --container-reading: 42rem;
+  --container-workspace: 72rem;
+}
+
+/* Shell dimensions have no Tailwind namespace; use as h-(--shell-header-height). */
+:root {
+  --shell-header-height: 3.5rem;
+  --shell-bottom-nav-height: 4rem;
+  --shell-sidebar-width: 15rem;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+
+  /* Language-aware fonts: any element tagged with lang picks the right stack. */
+  :lang(zh) {
+    font-family: var(--font-zh);
+  }
+
+  :lang(ja) {
+    font-family: var(--font-ja);
+  }
+
+  /* Romanizations and phonetics: pinyin (zh-Latn-pinyin) and IPA (*-fonipa). */
+  :lang(zh-Latn),
+  :lang(en-fonipa) {
+    font-family: var(--font-ipa);
+  }
+
+  :lang(zh),
+  :lang(ja) {
+    line-break: strict;
+  }
+
+  /* Long words, URLs and unspaced CJK must wrap instead of clipping. */
+  p,
+  li,
+  h1,
+  h2,
+  h3,
+  dd {
+    overflow-wrap: anywhere;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
