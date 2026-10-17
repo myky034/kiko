@@ -37,12 +37,15 @@ Use codepoint_sequence text for a displayed character identity where necessary; 
 
 | Table | Important fields | Constraints |
 |---|---|---|
-| user_profile | id, auth_provider, auth_subject, display_name, timezone, interface_language, state, authorization_revision, timestamps | Unique provider+subject; state pending/active/suspended/removed; revision >=1 |
-| allowed_account | id, provider, subject or verified admission selector, status, admitted_by, timestamps | Exact admission binding reviewed for chosen provider; not first-visitor Owner |
+| user_profile | id, auth_provider, auth_subject, timezone (null until onboarding), interface_language, state, authorization_revision, onboarded_at, version, timestamps | Unique provider+subject; state pending/active/suspended/removed; revision >=1; onboarded_at requires timezone. display_name deferred |
+| allowed_account | id, provider, email (normalized), status active/revoked, bound_subject, bound_user_id, admitted_by, timestamps | Unique provider+email and provider+bound_subject; subject/user bound together; not first-visitor Owner |
+| allowed_account_role | allowed_account_id, role_code | Roles granted on admission; copied to user_role at first sign-in |
 | role | code | OWNER, LEARNER only MVP |
 | user_role | user_id, role_code, assigned_by, assigned_at | PK user+role; FK both |
 | user_language_preference | user_id, language_code, preferred_script nullable, pronunciation_locale nullable, enabled | PK user+language; preferences not permission claims |
 | language | code, display_name, capability configuration | Seed zh/ja/en; capability validated in app |
+
+Implemented 2026-10-17 in schema `kiko` (`prisma/schema.prisma` + `prisma/migrations/`), with `audit_event` (append-only for the runtime). The runtime role cannot write state, roles, revision or the allowlist (DEC-006/007).
 
 Role-permission mapping lives in versioned code MVP; no editable permission tables required. If duplicated in DB for policies, generate/version from one registry and test parity. auth_subject is not a secret credential but should not be unnecessarily exposed. Do not store access/refresh tokens or passwords here.
 

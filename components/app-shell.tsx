@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { buttonClass } from "@/components/ui";
 
 type NavItem = {
   label: string;
@@ -23,15 +24,11 @@ export const LEARNING_NAV: readonly NavItem[] = [
 const UNAVAILABLE_HINT = "Chưa có";
 
 function NavEntry({ item, current }: { item: NavItem; current: boolean }) {
-  const base =
-    "flex min-h-11 items-center justify-between gap-2 rounded-control px-3 text-sm";
+  const base = "flex min-h-11 items-center justify-between gap-2 rounded-md px-3 text-supporting";
 
   if (!item.available) {
     return (
-      <span
-        aria-disabled="true"
-        className={`${base} cursor-not-allowed text-muted-text`}
-      >
+      <span aria-disabled="true" className={`${base} cursor-not-allowed text-muted-foreground`}>
         <span>{item.label}</span>
         <span className="text-xs">{UNAVAILABLE_HINT}</span>
       </span>
@@ -43,9 +40,7 @@ function NavEntry({ item, current }: { item: NavItem; current: boolean }) {
       href={item.href}
       aria-current={current ? "page" : undefined}
       className={`${base} font-medium ${
-        current
-          ? "bg-primary text-primary-contrast"
-          : "text-text hover:bg-background"
+        current ? "bg-primary-soft text-primary-strong" : "text-foreground hover:bg-muted"
       }`}
     >
       {item.label}
@@ -56,9 +51,12 @@ function NavEntry({ item, current }: { item: NavItem; current: boolean }) {
 export function AppShell({
   children,
   currentPath,
+  signOutAction,
 }: {
   children: ReactNode;
   currentPath: string;
+  /** Server Action that ends the session; rendered as a POST form. */
+  signOutAction?: () => Promise<void>;
 }) {
   const mobileItems = LEARNING_NAV.filter((item) => item.primaryOnMobile);
 
@@ -66,18 +64,22 @@ export function AppShell({
     <div className="flex min-h-dvh flex-col">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50 focus:rounded-control focus:bg-surface focus:px-4 focus:py-2"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-4 focus:py-2"
       >
         Bỏ qua đến nội dung chính
       </a>
 
-      <header className="sticky top-0 z-40 flex h-(--shell-header-height) items-center border-b border-border bg-surface px-4">
-        <Link
-          href="/"
-          className="text-xl font-semibold tracking-tight text-primary"
-        >
+      <header className="sticky top-0 z-40 flex h-(--shell-header-height) items-center justify-between border-b border-border bg-surface px-4 md:px-8">
+        <Link href="/" className="text-xl font-semibold tracking-tight text-primary-strong">
           Kiko
         </Link>
+        {signOutAction ? (
+          <form action={signOutAction}>
+            <button type="submit" className={buttonClass.ghost}>
+              Đăng xuất
+            </button>
+          </form>
+        ) : null}
       </header>
 
       <div className="flex flex-1">
@@ -96,7 +98,7 @@ export function AppShell({
 
         <main
           id="main"
-          className="min-w-0 flex-1 px-4 pt-6 pb-[calc(var(--shell-bottom-nav-height)+1.5rem)] md:px-8 md:pb-8"
+          className="min-w-0 flex-1 px-4 pt-6 pb-[calc(var(--shell-bottom-nav-height)+1.5rem)] md:px-8 md:pt-8 md:pb-8"
         >
           {children}
         </main>
@@ -114,7 +116,7 @@ export function AppShell({
                   href={item.href}
                   aria-current={item.href === currentPath ? "page" : undefined}
                   className={`flex flex-1 flex-col items-center justify-center text-xs font-medium ${
-                    item.href === currentPath ? "text-primary" : "text-text"
+                    item.href === currentPath ? "text-primary-strong" : "text-foreground"
                   }`}
                 >
                   {item.label}
@@ -122,7 +124,7 @@ export function AppShell({
               ) : (
                 <span
                   aria-disabled="true"
-                  className="flex flex-1 flex-col items-center justify-center text-xs text-muted-text"
+                  className="flex flex-1 flex-col items-center justify-center text-xs text-muted-foreground"
                 >
                   {item.label}
                   <span className="sr-only"> ({UNAVAILABLE_HINT})</span>
@@ -133,7 +135,7 @@ export function AppShell({
           <li className="flex">
             <span
               aria-disabled="true"
-              className="flex flex-1 flex-col items-center justify-center text-xs text-muted-text"
+              className="flex flex-1 flex-col items-center justify-center text-xs text-muted-foreground"
             >
               Thêm
               <span className="sr-only"> ({UNAVAILABLE_HINT})</span>

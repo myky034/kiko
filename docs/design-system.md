@@ -41,6 +41,8 @@ The HEX values below are **proposed normalized tokens inspired by the first mock
 
 **Distribution guideline:** approximately 70% neutral/white, 20% lavender/blue, 10% contextual accent; never rely on pastel-on-white for essential text. Validate actual foreground/background contrast to WCAG 2.2 AA (4.5:1 normal text, 3:1 large text and key UI indicators).
 
+**Implementation note (2026-10-17, DEC-009):** measured failures — white on `primary` 4.42:1, `warning` on white 4.15:1, `border` 1.20:1. The app keeps these brand values and adds `primary-strong` #6254C7, `warning-strong` #94560E and `border-strong` #8A93A6 for text, buttons and form-control borders.
+
 ## 3. Typography
 
 - Primary UI font: **Inter**, Vietnamese glyph coverage required.
@@ -149,6 +151,7 @@ Use restrained easing and respect `prefers-reduced-motion`. Never animate contin
 - Audio/video lessons need captions/transcripts where appropriate.
 - Respect mobile safe areas and prevent bottom navigation from covering content.
 - Test Vietnamese diacritics, French accents, Japanese kana/kanji and Korean hangul.
+  *(Scope note: the product currently supports zh/ja/en only; Korean/French here are an open decision, OPEN-001 in DECISIONS.md.)*
 - Distinguish **interface language** from **learning language**.
 - Provide skeleton/loading, empty, offline, error, locked, active and completed states.
 

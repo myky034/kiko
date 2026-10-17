@@ -6,9 +6,9 @@ Kiko connects reading/listening content, vocabulary capture, shadowing, handwrit
 
 ## Project status
 
-**Bootstrap (KIKO-005) — application shell only.** The repository contains a runnable Next.js app shell with the Kiko name, the zh/ja/en language registry, shared design tokens and unit tests. No sign-in, database, storage, AI or learning feature is implemented yet; the shell says so on screen. No repository URL, deployment, database or release availability is asserted here.
+**Slice 1 in progress — private sign-in → admission → onboarding → empty dashboard.** Implemented: Supabase email-OTP sign-in, Owner-approved admission, OWNER/LEARNER permissions with ownership checks in the server DAL, onboarding (learning languages + timezone), an empty-state dashboard and the database schema/migrations. Not yet done against the cloud project: applying migrations, enabling the runtime role and a real OTP sign-in (see [Supabase and database setup](#supabase-and-database-setup)). No lessons, vocabulary, storage, AI or deployment exist yet.
 
-Confirmed: name Kiko; zh/ja/en learning; vocabulary, reading, conversations, handwriting and shadowing needs. Selected by the project owner for bootstrap: Next.js App Router + TypeScript, npm, ESLint, Tailwind CSS, `app/` at the root (no `src/`), no component library yet. Still proposed: responsive web scope/devices, Vietnamese UI, PostgreSQL/Prisma, Supabase Auth/Storage, hosting.
+Accepted decisions are recorded in [docs/DECISIONS.md](docs/DECISIONS.md): Supabase Auth with email OTP, private admission, Prisma + SQL migrations, a dedicated Supabase dev project, Tailwind only, system fonts, zh/ja/en. Still proposed/open: target devices, hosting, Vietnamese UI as final, visual identity, storage provider.
 
 ## Planned MVP
 
@@ -40,7 +40,9 @@ No pronunciation/handwriting scores, AI conversations, unrestricted URL import, 
 | [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Entities, relations, constraints and retention |
 | [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) | Ordered slices/tasks and completion gates |
 | [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | Tests, environments, release gates and evidence |
-| [env.example](env.example) | Proposed configuration contract with placeholders |
+| [docs/design-system.md](docs/design-system.md) | Proposed visual design system (tokens, components) |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Accepted, derived and open decisions |
+| [.env.example](.env.example) | Configuration contract with placeholders |
 
 Documents refer to each other by bare file name (e.g. `PROJECT_SPEC.md`); those names resolve inside `docs/`. The spec's role section (§5) is aligned with ACCESS_CONTROL.md as of spec v1.1. ADR/decision records should distinguish Proposed, Accepted and Deferred choices.
 
@@ -57,19 +59,21 @@ If an agent does not load AGENTS.md automatically, explicitly ask it to read the
 
 ## Local application setup
 
-Verified on macOS with Node.js 24.21.0 and npm 11.19.0 (2026-10-16).
+Verified on macOS with Node.js 24.21.0 and npm 11.19.0 (2026-10-17).
 
 | Item | Verified value |
 |---|---|
 | Runtime | Node.js `>=22.12.0` (`engines`; Vitest 5 requirement); `.nvmrc` pins major 24 |
 | Package manager | npm, single `package-lock.json` |
 | Install | `npm ci` |
-| Development | `npm run dev` → http://localhost:3000 (Turbopack) |
+| Development | `npm run dev` → http://localhost:3000 (runs `prisma generate` first) |
 | Production build / serve | `npm run build`, then `npm start` → http://localhost:3000 |
 | Lint | `npm run lint` (ESLint CLI with `eslint-config-next` core-web-vitals + TypeScript) |
-| Typecheck | `npm run typecheck` (`next typegen && tsc --noEmit`; works on a fresh clone without a build) |
-| Unit tests | `npm test` (Vitest, single run); `npm run test:watch` for watch mode |
-| Database / auth / storage | Not configured — no migration, seed or provider setup exists yet |
+| Typecheck | `npm run typecheck` (`prisma generate && next typegen && tsc --noEmit`; no database needed) |
+| Tests | `npm test` (Vitest: unit, component and PGlite database tests; no network or secrets); `npm run test:watch` |
+| Integration tests | `npm run test:integration` — local PostgreSQL via `KIKO_TEST_DATABASE_URL`; resets schema `kiko` in that database each run (DEC-014) |
+| Migrations | `npm run db:migrate:status` (read-only), `npm run db:migrate:deploy` (writes; manual, needs approval) |
+| Admission | `npm run kiko:admin -- <status\|admit\|revoke\|suspend\|reactivate> --email …` |
 | E2E | Not set up yet |
 
 ```bash
@@ -78,7 +82,7 @@ npm ci
 npm run dev
 ```
 
-No environment variables are required for the shell. Do not run migrations/seeds against unknown, shared or production targets. Use synthetic test data. Public deployment, paid integrations and changes to access require appropriate task authorization.
+`lint`, `typecheck`, `test` and `build` need no environment variables. Running the app needs the Supabase/database variables below; without them protected pages fail closed with an error screen. Do not run migrations/seeds against unknown, shared or production targets. Use synthetic test data. Public deployment, paid integrations and changes to access require appropriate task authorization.
 
 ### Selected versions
 
@@ -90,25 +94,34 @@ No environment variables are required for the shell. Do not run migrations/seeds
 | eslint | 9.x | `eslint-plugin-react`, `jsx-a11y` and `import` used by `eslint-config-next` do not yet declare ESLint 10 support |
 | tailwindcss / @tailwindcss/postcss | 4.3.x | Installed per the Tailwind v4 Next.js guide (`postcss.config.mjs`) |
 | vitest / @vitejs/plugin-react / jsdom / @testing-library/react | 5.0.x / 6.1.x / 30.x / 16.3.x | Next.js Vitest guide; tsconfig paths via Vite's native `resolve.tsconfigPaths` |
+| @supabase/ssr / @supabase/supabase-js | 0.12.7 / 2.118.0 (exact) | Current stable; cookie-based SSR client, `getClaims()` session verification |
+| prisma / @prisma/client / @prisma/adapter-pg | 7.10.1 (exact) | Current stable 7.x; npm `latest` points to 8.0.0-rc, not used |
+| pg / zod / server-only | 8.23.x / 4.6.x / 0.0.1 | Driver for the Prisma adapter and operator script; input/env validation; server-module guard |
+| @electric-sql/pglite | 0.5.10 (exact, dev) | In-process PostgreSQL for database tests (no Docker available) |
 
 Exact resolved versions are in `package-lock.json`.
 
 ### Layout
 
 ```text
-app/                 Routes and root layout (App Router); globals.css holds design tokens
-components/          Shared UI (app shell, language card)
-modules/language/    zh/ja/en registry: reading notations, stroke-practice capability
-tests/               Vitest unit tests and setup
+app/                 Routes: / (dashboard), /sign-in, /onboarding, /access-denied; Server Actions
+components/          Shared UI built from tokens (app shell, dashboard, form recipes)
+modules/identity/    Access resolution, onboarding, dashboard use cases and ports
+modules/language/    zh/ja/en registry, IANA timezone validation
+server/              auth (Supabase), config (env validation), db (Prisma), policy (permissions)
+prisma/              schema.prisma and migrations (generated + hand-written security SQL)
+scripts/             kiko-admin.mjs operator CLI (admission, suspension)
+proxy.ts             Session refresh only; authorization lives in the server DAL
+tests/               unit/, db/ (PGlite), integration/ (local PostgreSQL), component tests, support/
 ```
 
-Design tokens (color, typography, spacing, radius, layout) are defined once in `app/globals.css` with Tailwind's `@theme`, e.g. `bg-surface`, `text-muted-text`, `rounded-panel`, `text-transcript`, `max-w-reading`, `font-zh`. Values are starting proposals; palette, fonts and visual identity remain open (Spec D10). Fonts are system stacks with per-language fallbacks selected through `lang` attributes (`zh`, `ja`, `zh-Latn-pinyin`, `en-fonipa`), so no font is downloaded at build time.
+Design tokens (color, typography, spacing, radius, elevation, layout) are defined once in `app/globals.css` with Tailwind's `@theme`, following `docs/design-system.md` plus AA-compliant `*-strong` variants (DEC-009), e.g. `bg-primary-strong`, `text-muted-foreground`, `rounded-2xl`, `shadow-card`, `max-w-content`. Fonts are system stacks with per-language fallbacks selected through `lang` attributes (`zh`, `ja`, `zh-Latn-pinyin`, `en-fonipa`), so no font is downloaded at build time.
 
 `next.config.ts` sets `agentRules: false`: Next.js 16.4 `next dev` otherwise appends its own block to this repository's `AGENTS.md`.
 
 ## Configuration
 
-`.env.example` documents proposed names, not an implemented loader. (In this working tree the file is currently named `env.example`; renaming it to `.env.example` keeps it tracked — `.gitignore` ignores `.env*` except `.env.example`.) It must be reconciled with chosen SDK versions and code during bootstrap. Do not create real credentials merely to fill every field. Start with optional features disabled.
+`.env.example` lists every variable; those marked `[used]` are read and validated by `server/config/env.ts` (names only in errors, never values). `.gitignore` ignores `.env*` except `.env.example`. Do not create real credentials merely to fill every field. Start with optional features disabled.
 
 For an approved local setup, copy the example to a local ignored file supported by the selected runtime, fill values through secure configuration and keep it outside Git. Framework/runtime env loading must be verified rather than assumed. The example is intentionally non-runnable until provider details and operating limits are set.
 
@@ -118,6 +131,22 @@ For an approved local setup, copy the example to a local ignored file supported 
 - Auth/bootstrap role assignments belong in a controlled workflow, not a default public registration toggle or `isAdmin=true` client field.
 - Quotas, signed-link expiry and upload limits must be selected after P0; blank required limits must fail closed.
 - Production origin, OAuth redirects and private storage policies must match deployed configuration.
+
+### Supabase and database setup
+
+Order matters; steps marked **approval** write to the shared dev project (AGENTS.md §6).
+
+1. **Variables** in `.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Project Settings → API), `DIRECT_URL` (`postgres` via session pooler, port 5432; Project → Connect), `KIKO_DEFAULT_TIMEZONE` optional.
+2. **Email OTP template** (Dashboard → Authentication → Emails → Magic link): include `{{ .Token }}` so the email carries a code; remove the link so only the code is used. Optionally lower *Email OTP expiration* (default 1 hour).
+3. **Check migration state** (read-only): `npm run db:migrate:status`.
+4. **Apply migrations — approval:** `npm run db:migrate:deploy`. Creates schema `kiko`, reference data, the `kiko_app` role (NOLOGIN), grants, RLS and admission functions.
+5. **Enable the runtime role — approval, creates a credential:** in the SQL editor run `ALTER ROLE kiko_app WITH LOGIN PASSWORD '<generated secret>';` then set `DATABASE_URL=postgresql://kiko_app.<project-ref>:<password>@<region>.pooler.supabase.com:6543/postgres`. The app refuses `postgres` as the runtime user.
+6. **Admit the first Owner — approval, grants access:** `npm run kiko:admin -- admit --email <owner email> --roles OWNER,LEARNER --yes`. The script prints the target host first. Other learners: `--roles LEARNER`.
+7. `npm run dev`, sign in with the approved email, complete onboarding.
+
+Suspend/reactivate: `npm run kiko:admin -- suspend --email … --yes` (the next request is denied).
+
+**Local integration database.** With Postgres.app running, add `KIKO_TEST_DATABASE_URL=postgresql://<local user>@localhost:5432/kiko_flashcard` to `.env.local` (or the shell) and run `npm run test:integration`. The suite only accepts loopback hosts, drops and recreates schema `kiko` in that database, applies migrations with `prisma migrate deploy`, creates the NOLOGIN roles `anon`, `authenticated` and `service_role` on the local server only if missing, and runs the runtime code as `kiko_app` through `options=-c role=kiko_app` (no login or password is ever set locally). Do not keep data you need in schema `kiko` of that database. Known limits: OPEN-002/003/004 in DECISIONS.md.
 
 ## Testing and security
 
@@ -139,4 +168,4 @@ Source-code license has not been selected; do not label this project MIT/open so
 
 ## Next step
 
-KIKO-005 bootstrap is in place. Before KIKO-006 (auth, admission, roles), complete the KIKO-001 decision register and the auth/storage part of KIKO-004: auth provider and sign-in method, Owner bootstrap procedure, database/migration ownership and hosting.
+Finish slice 1 against the dev project (setup steps 4–7 above, then a manual OTP sign-in and suspension check). Next slice: KIKO-008 lesson CRUD and library.

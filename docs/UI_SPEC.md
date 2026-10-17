@@ -99,6 +99,8 @@ Show only configured login methods; no fake Google/email buttons. No public regi
 
 Acceptance: keyboard usable; auth errors do not leak account existence beyond provider behavior; browser permissions are not requested here.
 
+Slice 1 (2026-10-17): two steps — email, then the emailed OTP code. The response after step 1 is identical for approved and unapproved emails. Onboarding (`/onboarding`) asks for learning languages and timezone only (DEC-003).
+
 ### UI02 — Home
 
 Current language, continue learning, due cards, recent activity and quick create. Empty state: create first lesson/add words. Owner-only sees admin landing rather than failing Learner queries. Do not show fake streaks, time studied or achievement scores. Counts label unique words vs practice attempts.

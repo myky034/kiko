@@ -55,8 +55,8 @@ Lý do: giảm số nơi triển khai, dễ transaction và truy vết; vẫn t�
 |---|---|---|
 | Web | Next.js App Router + TypeScript | Server/client boundary phải rõ; chốt phiên bản trước bootstrap |
 | Database | PostgreSQL, có thể dùng Supabase quản lý | Region, backup, pool và quyền truy cập chưa chốt |
-| ORM/migration | Prisma cho schema nghiệp vụ | Không để công cụ khác đồng thời sở hữu cùng schema |
-| Authentication | Supabase Auth | Phương thức đăng nhập, session flow, allowlist cần chốt |
+| ORM/migration | Prisma cho schema nghiệp vụ — **Accepted** (DEC-005) | SQL RLS/grant/function là migration viết tay trong `prisma/migrations/`; runtime `kiko_app` tách khỏi `postgres` migration (DEC-006) |
+| Authentication | Supabase Auth, OTP qua email — **Accepted** (DEC-001) | Admission bằng allowlist do Owner cấp trước; `getClaims()` mỗi request (DEC-002, DEC-007) |
 | File | Supabase Storage hoặc object storage tương đương | Private bucket, policy và signed upload/read phải thử |
 | UI | Một bộ component và token thống nhất | Chưa chốt thư viện/phong cách; không trộn nhiều UI kits |
 | Viết/audio | SVG/Canvas, Pointer Events, browser media APIs | Codec, độ trễ, iOS/Android và bút phải spike |
@@ -386,6 +386,7 @@ Mỗi bước cập nhật test evidence và decision records. Không viết h�
 | ADR-008 | AI optional, no vector DB MVP | Proposed; giữ core độc lập |
 | ADR-009 | PostgreSQL job table | Proposed; chỉ bật khi có runtime worker |
 | ADR-010 | Empty-profile restore MVP | Proposed; tránh merge không xác định |
+| ADR-011 | Auth/admission/DB identity cho lát cắt 1 | Accepted/Derived; chi tiết DEC-001…DEC-013 trong `DECISIONS.md` |
 
 Chốt trước bootstrap: stack/version/package manager, auth method, hosting và DB ownership. Chốt trước media: thiết bị, codec, size/duration/quota, source adapters. Chốt trước writing: script variants, dataset license/coverage. Chốt trước AI: provider, retention, cost và tiêu chí chất lượng. Giọng Anh, mục tiêu HSK/JLPT/CEFR và visual identity không được AI tự suy ra.
 

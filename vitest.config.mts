@@ -10,6 +10,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     include: ["tests/**/*.test.{ts,tsx}"],
+    // Needs a local PostgreSQL; run with `npm run test:integration`.
+    exclude: ["tests/integration/**"],
     setupFiles: ["tests/setup.ts"],
   },
 });

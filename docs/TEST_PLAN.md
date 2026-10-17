@@ -22,6 +22,8 @@ MVP covers private access, lessons/readings, vocabulary/decks, media/subtitles, 
 
 Framework selection remains open. Possible choices such as a TypeScript unit runner, browser automation and disposable PostgreSQL are proposals, not installed tools. Derive actual commands from package manifests and CI. A database substitute does not establish parity for RLS, extensions, pooling or the actual deployed PostgreSQL configuration; record what was tested against the real stack.
 
+Current tooling (2026-10-17): Vitest for unit/component tests; PGlite (in-process PostgreSQL) for migration, constraint, grant and RLS tests in `tests/db` (DEC-013); local PostgreSQL 18 integration tests in `tests/integration` that apply migrations with `prisma migrate deploy` and run the Prisma repository as the `kiko_app` runtime role (DEC-014). Supabase Auth, pooler and the cloud database are verified only through manual smoke checks recorded with each slice.
+
 ## 3. Environments and test identities
 
 - Local/test database and storage must be disposable and isolated from shared/production. Verify target without printing secrets before mutations.

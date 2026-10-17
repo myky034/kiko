@@ -3,7 +3,7 @@
 **Phiên bản:** 1.0 — Proposed baseline  
 **Ngày:** 16/10/2026  
 **Mục tiêu:** Triển khai theo lát cắt nhỏ, có bằng chứng nghiệm thu, cho Trung (`zh`), Nhật (`ja`), Anh (`en`).  
-**Trạng thái:** Chưa bắt đầu; không xác nhận repo, deployment, database hoặc task nào đã hoàn tất.
+**Trạng thái (17/10/2026):** KIKO-005 xong (bootstrap). KIKO-001 một phần (`DECISIONS.md`). KIKO-004 phần auth/DB: kiểm chứng offline và đọc DB dev, còn chờ áp migration và thử OTP thật. KIKO-006/007 đang làm (lát cắt 1: đăng nhập → admission → onboarding → dashboard). Chưa có deployment.
 
 ## 1. Cách sử dụng và phạm vi
 
