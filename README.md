@@ -74,6 +74,7 @@ Verified on macOS with Node.js 24.21.0 and npm 11.19.0 (2026-10-17).
 | Integration tests | `npm run test:integration` — local PostgreSQL via `KIKO_TEST_DATABASE_URL`; resets schema `kiko` in that database each run (DEC-014) |
 | Migrations | `npm run db:migrate:status` (read-only), `npm run db:migrate:deploy` (writes; manual, needs approval) |
 | Admission | `npm run kiko:admin -- <status\|admit\|revoke\|suspend\|reactivate> --email …` |
+| Runtime credential | `npm run db:provision-runtime -- --yes` (creates/rotates the `kiko_app` password; approval) |
 | E2E | Not set up yet |
 
 ```bash
@@ -134,19 +135,30 @@ For an approved local setup, copy the example to a local ignored file supported 
 
 ### Supabase and database setup
 
-Order matters; steps marked **approval** write to the shared dev project (AGENTS.md §6).
+Order matters. Steps marked **approval** write to the Supabase dev project or create credentials (AGENTS.md §6); never paste passwords or connection strings into chat or Git.
 
-1. **Variables** in `.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (Project Settings → API), `DIRECT_URL` (`postgres` via session pooler, port 5432; Project → Connect), `KIKO_DEFAULT_TIMEZONE` optional.
-2. **Email OTP template** (Dashboard → Authentication → Emails → Magic link): include `{{ .Token }}` so the email carries a code; remove the link so only the code is used. Optionally lower *Email OTP expiration* (default 1 hour).
-3. **Check migration state** (read-only): `npm run db:migrate:status`.
-4. **Apply migrations — approval:** `npm run db:migrate:deploy`. Creates schema `kiko`, reference data, the `kiko_app` role (NOLOGIN), grants, RLS and admission functions.
-5. **Enable the runtime role — approval, creates a credential:** in the SQL editor run `ALTER ROLE kiko_app WITH LOGIN PASSWORD '<generated secret>';` then set `DATABASE_URL=postgresql://kiko_app.<project-ref>:<password>@<region>.pooler.supabase.com:6543/postgres`. The app refuses `postgres` as the runtime user.
-6. **Admit the first Owner — approval, grants access:** `npm run kiko:admin -- admit --email <owner email> --roles OWNER,LEARNER --yes`. The script prints the target host first. Other learners: `--roles LEARNER`.
-7. `npm run dev`, sign in with the approved email, complete onboarding.
+1. **CA certificate** (public): Dashboard → Database → Settings → SSL Configuration → *Download certificate*; save outside the repo, e.g. `~/.config/kiko/supabase-ca.crt`.
+2. **`DIRECT_URL`** in `.env.local`: session pooler, `postgres.<ref>@<region>.pooler.supabase.com:5432`, followed by `?sslmode=require&sslaccept=strict&sslcert=<absolute CA path>`. Check read-only: `npm run db:migrate:status` must list the pending migrations.
+3. **Enforce SSL** (Dashboard → Database → Settings → SSL Configuration) so unencrypted connections are refused. Recommended: then reset the database password (Database → Settings) and update `DIRECT_URL`, because earlier probes ran without TLS (OPEN-003).
+4. **Email templates** (Authentication → Emails → Templates): *Magic link or OTP* **and** *Confirm sign up* must contain `{{ .Token }}` and no `{{ .ConfirmationURL }}` (see below). Optionally set *Email OTP expiration* to 600 s (Authentication → Sign In / Providers → Email).
+5. **Apply migrations — approval:** `npm run db:migrate:deploy`.
+6. **Runtime credential — approval:** `npm run db:provision-runtime -- --yes`. Writes `DATABASE_URL` to `.env.local`; prints no secret.
+7. **First Owner — approval:** `npm run kiko:admin -- admit --email <owner email> --roles OWNER,LEARNER --yes`.
+8. `npm run dev`, sign in with the approved email, complete onboarding.
 
-Suspend/reactivate: `npm run kiko:admin -- suspend --email … --yes` (the next request is denied).
+Email template used by the code (OTP only, 6–10 digits accepted):
 
-**Local integration database.** With Postgres.app running, add `KIKO_TEST_DATABASE_URL=postgresql://<local user>@localhost:5432/kiko_flashcard` to `.env.local` (or the shell) and run `npm run test:integration`. The suite only accepts loopback hosts, drops and recreates schema `kiko` in that database, applies migrations with `prisma migrate deploy`, creates the NOLOGIN roles `anon`, `authenticated` and `service_role` on the local server only if missing, and runs the runtime code as `kiko_app` through `options=-c role=kiko_app` (no login or password is ever set locally). Do not keep data you need in schema `kiko` of that database. Known limits: OPEN-002/003/004 in DECISIONS.md.
+```html
+<h2>Mã đăng nhập Kiko</h2>
+<p>Mã đăng nhập của bạn là:</p>
+<p style="font-size:28px;letter-spacing:6px"><strong>{{ .Token }}</strong></p>
+<p>Nhập mã này trên trang đăng nhập Kiko. Mã chỉ dùng một lần và sẽ hết hạn.</p>
+<p>Nếu bạn không yêu cầu mã, hãy bỏ qua email này.</p>
+```
+
+Suspend/reactivate: `npm run kiko:admin -- suspend --email … --yes` (the next request is denied). Known limits: OPEN-002/003/004 in DECISIONS.md.
+
+**Local integration database.** With Postgres.app running, add `KIKO_TEST_DATABASE_URL=postgresql://<local user>@localhost:5432/kiko_flashcard` to `.env.local` (or the shell) and run `npm run test:integration`. The suite only accepts loopback hosts, drops and recreates schema `kiko` in that database, applies migrations with `prisma migrate deploy`, creates the NOLOGIN roles `anon`, `authenticated` and `service_role` on the local server only if missing, and runs the runtime code as `kiko_app` through `options=-c role=kiko_app` (no login or password is ever set locally). Do not keep data you need in schema `kiko` of that database.
 
 ## Testing and security
 

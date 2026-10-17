@@ -13,12 +13,29 @@ describe("server configuration", () => {
     expect(serverSchema.safeParse({ DATABASE_URL: url }).success).toBe(false);
   });
 
-  it("accepts the kiko_app runtime role through the pooler", () => {
+  it("accepts the kiko_app runtime role through the pooler with verified TLS", () => {
     const result = serverSchema.safeParse({
-      DATABASE_URL: "postgresql://kiko_app.ref:pw@aws-0-x.pooler.supabase.com:6543/postgres",
+      DATABASE_URL:
+        "postgresql://kiko_app.ref:pw@aws-0-x.pooler.supabase.com:6543/postgres?sslmode=verify-full&sslrootcert=/abs/ca.crt",
     });
     expect(result.success).toBe(true);
     expect(result.success && result.data.KIKO_DEFAULT_TIMEZONE).toBe("Asia/Ho_Chi_Minh");
+  });
+
+  it.each(["", "?sslmode=require", "?sslmode=verify-ca&sslrootcert=/abs/ca.crt", "?sslmode=verify-full"])(
+    "refuses a remote runtime URL without verify-full TLS (%j)",
+    (query) => {
+      const result = serverSchema.safeParse({
+        DATABASE_URL: `postgresql://kiko_app.ref:pw@aws-0-x.pooler.supabase.com:6543/postgres${query}`,
+      });
+      expect(result.success).toBe(false);
+    },
+  );
+
+  it("allows a plain local runtime connection", () => {
+    expect(
+      serverSchema.safeParse({ DATABASE_URL: "postgresql://kiko_app@localhost:5432/kiko_flashcard" }).success,
+    ).toBe(true);
   });
 
   it("rejects missing or non-PostgreSQL URLs and invalid default timezones", () => {
@@ -26,7 +43,7 @@ describe("server configuration", () => {
     expect(serverSchema.safeParse({ DATABASE_URL: "https://example.test" }).success).toBe(false);
     expect(
       serverSchema.safeParse({
-        DATABASE_URL: "postgresql://kiko_app.ref:pw@host:6543/postgres",
+        DATABASE_URL: "postgresql://kiko_app@localhost:5432/postgres",
         KIKO_DEFAULT_TIMEZONE: "GMT+7",
       }).success,
     ).toBe(false);

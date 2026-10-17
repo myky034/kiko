@@ -17,6 +17,25 @@ export class ConfigurationError extends Error {
 /** Roles that bypass RLS or own the schema; the web runtime must not use them. */
 const PRIVILEGED_DB_USERS = new Set(["postgres", "supabase_admin", "service_role"]);
 
+const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
+
+/**
+ * Remote runtime connections must verify the server certificate (DEC-015):
+ * pg dialect `sslmode=verify-full` plus `sslrootcert` (Supabase uses its own CA).
+ */
+function hasVerifiedTlsOrIsLocal(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (LOOPBACK_HOSTS.has(parsed.hostname)) return true;
+    return (
+      parsed.searchParams.get("sslmode") === "verify-full" &&
+      (parsed.searchParams.get("sslrootcert") ?? "").length > 0
+    );
+  } catch {
+    return false;
+  }
+}
+
 function dbUserOf(url: string): string | null {
   try {
     // Supavisor pooler usernames look like `<role>.<project-ref>`.
@@ -41,7 +60,8 @@ const serverSchema = z.object({
     .refine((url) => {
       const user = dbUserOf(url);
       return user !== null && !PRIVILEGED_DB_USERS.has(user);
-    }, "runtime must use the least-privilege kiko_app role"),
+    }, "runtime must use the least-privilege kiko_app role")
+    .refine(hasVerifiedTlsOrIsLocal, "remote database requires sslmode=verify-full and sslrootcert"),
   KIKO_DEFAULT_TIMEZONE: z
     .string()
     .default("Asia/Ho_Chi_Minh")

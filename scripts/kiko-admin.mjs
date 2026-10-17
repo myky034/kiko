@@ -13,6 +13,7 @@
 
 import { parseArgs } from "node:util";
 import pg from "pg";
+import { describeTarget, operatorConnectionConfig } from "./lib/db.mjs";
 
 const PROVIDER = "supabase";
 const ROLE_CODES = new Set(["OWNER", "LEARNER"]);
@@ -44,22 +45,19 @@ if (!COMMANDS.has(command)) fail(`unknown command. Use one of: ${[...COMMANDS].j
 const email = (values.email ?? "").trim().toLowerCase();
 if (!/^[^\s@]+@[^\s@]+$/.test(email) || email.length > 320) fail("a valid --email is required");
 
-const connectionString = process.env.DIRECT_URL;
-if (!connectionString) fail("DIRECT_URL is not set");
-
-let target;
+let connectionConfig;
 try {
-  const url = new URL(connectionString);
-  target = `${url.hostname}:${url.port || "5432"}${url.pathname} as ${decodeURIComponent(url.username).split(".")[0]}`;
-} catch {
-  fail("DIRECT_URL is not a valid URL");
+  // Remote databases require verified TLS (DEC-015).
+  connectionConfig = operatorConnectionConfig(process.env.DIRECT_URL);
+} catch (error) {
+  fail(error.message);
 }
 
 const writes = command !== "status";
-console.log(`Target: ${target}`);
+console.log(`Target: ${describeTarget(process.env.DIRECT_URL)}`);
 if (writes && !values.yes) fail(`'${command}' changes access. Re-run with --yes after checking the target above.`);
 
-const client = new pg.Client({ connectionString, connectionTimeoutMillis: 10_000 });
+const client = new pg.Client(connectionConfig);
 
 async function findAccount() {
   const { rows } = await client.query(

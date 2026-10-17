@@ -6,8 +6,9 @@ const MIGRATIONS_DIR = path.join(process.cwd(), "prisma", "migrations");
 
 /**
  * Disposable in-process PostgreSQL (PGlite) with every Prisma migration applied
- * in order. Supabase API roles are created first so the migration's revokes run
- * the same branches as on Supabase.
+ * in order. Supabase API roles, Supabase's default privileges on `public` and
+ * Prisma's history table are created first so migrations run the same branches
+ * as on Supabase.
  *
  * Limits: PGlite is a different PostgreSQL major than the Supabase project, and
  * has no pooler, Supabase Auth or network TLS. It verifies SQL semantics,
@@ -19,6 +20,10 @@ export async function createMigratedDatabase(): Promise<PGlite> {
     CREATE ROLE anon NOLOGIN;
     CREATE ROLE authenticated NOLOGIN;
     CREATE ROLE service_role NOLOGIN BYPASSRLS;
+    -- Supabase grants new tables in public to the API roles by default.
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+    -- Prisma Migrate creates its history table before the first migration.
+    CREATE TABLE public._prisma_migrations (id varchar(36) PRIMARY KEY, migration_name varchar(255) NOT NULL);
   `);
 
   const migrations = readdirSync(MIGRATIONS_DIR, { withFileTypes: true })

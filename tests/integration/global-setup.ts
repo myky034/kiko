@@ -53,6 +53,12 @@ export default async function setup(project: TestProject) {
         IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN CREATE ROLE service_role NOLOGIN BYPASSRLS; END IF;
       END
       $$;`);
+    // Emulate Supabase's default privileges on `public` in this test database
+    // only (per-database setting), so the migration-history protection is
+    // exercised. Idempotent.
+    await admin.query(
+      "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role",
+    );
     // Reset only what Kiko migrations own in this database.
     await admin.query("DROP SCHEMA IF EXISTS kiko CASCADE");
     await admin.query("DROP TABLE IF EXISTS public._prisma_migrations");

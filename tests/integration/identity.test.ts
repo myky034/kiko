@@ -80,14 +80,24 @@ describe("environment", () => {
     expect(login.rows[0]).toEqual({ rolcanlogin: false, has_password: false });
   });
 
-  it("applied both migrations through prisma migrate deploy", async () => {
+  it("applied every migration through prisma migrate deploy", async () => {
     const { rows } = await admin.query<{ migration_name: string }>(
       "SELECT migration_name FROM public._prisma_migrations WHERE finished_at IS NOT NULL ORDER BY 1",
     );
     expect(rows.map((row) => row.migration_name)).toEqual([
       "20261017000000_identity_schema",
       "20261017000100_identity_security",
+      "20261017000200_protect_migration_history",
     ]);
+  });
+
+  it("keeps Prisma's history table away from Supabase API roles", async () => {
+    const { rows } = await admin.query<{ role: string; any_privilege: boolean }>(
+      `SELECT r AS role,
+              has_table_privilege(r, 'public._prisma_migrations', 'SELECT,INSERT,UPDATE,DELETE') AS any_privilege
+       FROM unnest(ARRAY['anon', 'authenticated', 'service_role', 'kiko_app']) AS r`,
+    );
+    for (const row of rows) expect(row.any_privilege, row.role).toBe(false);
   });
 });
 

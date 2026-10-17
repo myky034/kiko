@@ -277,3 +277,30 @@ describe("Supabase API roles", () => {
     expect(result.rows[0].granted).toBe(false);
   });
 });
+
+describe("migration history table", () => {
+  it("is not reachable by Supabase API roles despite public default privileges", async () => {
+    const rls = await db.query<{ relrowsecurity: boolean }>(
+      "SELECT relrowsecurity FROM pg_class WHERE oid = 'public._prisma_migrations'::regclass",
+    );
+    expect(rls.rows[0].relrowsecurity).toBe(true);
+    for (const role of ["anon", "authenticated", "service_role"]) {
+      for (const privilege of ["SELECT", "INSERT", "UPDATE", "DELETE"]) {
+        const result = await db.query<{ granted: boolean }>(
+          "SELECT has_table_privilege($1, 'public._prisma_migrations', $2) AS granted",
+          [role, privilege],
+        );
+        expect(result.rows[0].granted, `${role} ${privilege}`).toBe(false);
+      }
+    }
+  });
+
+  it("still lets other new public tables inherit the emulated defaults (control)", async () => {
+    await db.exec("CREATE TABLE public.control_table (id int)");
+    const result = await db.query<{ granted: boolean }>(
+      "SELECT has_table_privilege('anon', 'public.control_table', 'SELECT') AS granted",
+    );
+    expect(result.rows[0].granted).toBe(true);
+    await db.exec("DROP TABLE public.control_table");
+  });
+});

@@ -14,7 +14,8 @@
     "db:migrate:status": "prisma migrate status",
     "db:migrate:deploy": "prisma migrate deploy",
     "kiko:admin": "node scripts/kiko-admin.mjs",
-    "test:integration": "prisma generate && vitest run --config vitest.integration.config.mts"
+    "test:integration": "prisma generate && vitest run --config vitest.integration.config.mts",
+    "db:provision-runtime": "node scripts/provision-runtime-role.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
