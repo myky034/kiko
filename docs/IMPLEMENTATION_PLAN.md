@@ -3,7 +3,7 @@
 **Phiên bản:** 1.0 — Proposed baseline  
 **Ngày:** 16/10/2026  
 **Mục tiêu:** Triển khai theo lát cắt nhỏ, có bằng chứng nghiệm thu, cho Trung (`zh`), Nhật (`ja`), Anh (`en`).  
-**Trạng thái (17/10/2026):** KIKO-005 xong (bootstrap). KIKO-001 một phần (`DECISIONS.md`). KIKO-004 phần auth/DB: kiểm chứng offline và đọc DB dev, còn chờ áp migration và thử OTP thật. KIKO-006/007 đang làm (lát cắt 1: đăng nhập → admission → onboarding → dashboard). Chưa có deployment.
+**Trạng thái (17/10/2026):** KIKO-005 xong. KIKO-006 xong cho lát cắt 1 (đăng nhập Google → admission → onboarding → dashboard, chạy thật trên Supabase dev; chưa có đổi role/bảo vệ Owner cuối cùng). KIKO-007 một phần (schema identity đã áp lên Supabase dev; chưa có lesson/vocabulary). KIKO-001 một phần (`DECISIONS.md`). KIKO-004: auth/DB xong, storage chưa. Thử khóa tài khoản giữa phiên trên cloud được bỏ qua theo quyết định của chủ dự án (đã có test tự động). Theo dõi task trên Linear, project Kiko. Chưa có deployment.
 
 ## 1. Cách sử dụng và phạm vi
 

@@ -56,7 +56,7 @@ Lý do: giảm số nơi triển khai, dễ transaction và truy vết; vẫn t�
 | Web | Next.js App Router + TypeScript | Server/client boundary phải rõ; chốt phiên bản trước bootstrap |
 | Database | PostgreSQL, có thể dùng Supabase quản lý | Region, backup, pool và quyền truy cập chưa chốt |
 | ORM/migration | Prisma cho schema nghiệp vụ — **Accepted** (DEC-005) | SQL RLS/grant/function là migration viết tay trong `prisma/migrations/`; runtime `kiko_app` tách khỏi `postgres` migration (DEC-006) |
-| Authentication | Supabase Auth, OTP qua email — **Accepted** (DEC-001) | Admission bằng allowlist do Owner cấp trước; `getClaims()` mỗi request (DEC-002, DEC-007) |
+| Authentication | Supabase Auth, Google OAuth (PKCE) — **Accepted** (DEC-018) | Admission bằng allowlist do Owner cấp trước; `getClaims()` mỗi request; chỉ chấp nhận phiên OAuth; callback chỉ redirect nội bộ (DEC-002, DEC-007, DEC-018) |
 | File | Supabase Storage hoặc object storage tương đương | Private bucket, policy và signed upload/read phải thử |
 | UI | Một bộ component và token thống nhất | Chưa chốt thư viện/phong cách; không trộn nhiều UI kits |
 | Viết/audio | SVG/Canvas, Pointer Events, browser media APIs | Codec, độ trễ, iOS/Android và bút phải spike |

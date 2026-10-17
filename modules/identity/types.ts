@@ -12,14 +12,19 @@ export type VerifiedIdentity = {
   subject: string;
   email: string | null;
   isAnonymous: boolean;
+  /** Authentication methods of this session (JWT `amr`), e.g. ["oauth"]. */
+  authMethods: readonly string[];
 };
 
 /** Authentication provider port (implemented by server/auth). */
 export interface IdentityProvider {
   /** Returns null when there is no valid session. Never trusts unverified cookies. */
   getVerifiedIdentity(): Promise<VerifiedIdentity | null>;
-  /** Confirms with the provider that the identity's email is verified. */
-  isEmailConfirmed(identity: VerifiedIdentity): Promise<boolean>;
+  /**
+   * Confirms with the provider that the identity's email is verified by the
+   * admission provider (Google). Used once, before binding an approved email.
+   */
+  isEmailVerifiedByProvider(identity: VerifiedIdentity): Promise<boolean>;
 }
 
 export type ProfileRecord = {
@@ -62,7 +67,6 @@ export interface IdentityRepository {
   findProfileBySubject(provider: AuthProvider, subject: string): Promise<ProfileRecord | null>;
   /** Controlled admission; returns the user id or null when not admitted. */
   admitIdentity(provider: AuthProvider, subject: string, email: string): Promise<string | null>;
-  isEmailAdmissible(provider: AuthProvider, email: string): Promise<boolean>;
   listRoleCodes(userId: string): Promise<string[]>;
   listLanguagePreferences(userId: string): Promise<LanguagePreferenceRecord[]>;
   /** Atomic: guarded on active state + unchanged authorization revision. */
@@ -82,6 +86,7 @@ export type Actor = {
 
 export type DeniedReason =
   | "anonymous_identity"
+  | "unsupported_sign_in_method"
   | "email_unverified"
   | "not_admitted"
   | "pending"

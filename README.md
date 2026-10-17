@@ -6,9 +6,9 @@ Kiko connects reading/listening content, vocabulary capture, shadowing, handwrit
 
 ## Project status
 
-**Slice 1 in progress — private sign-in → admission → onboarding → empty dashboard.** Implemented: Supabase email-OTP sign-in, Owner-approved admission, OWNER/LEARNER permissions with ownership checks in the server DAL, onboarding (learning languages + timezone), an empty-state dashboard and the database schema/migrations. Not yet done against the cloud project: applying migrations, enabling the runtime role and a real OTP sign-in (see [Supabase and database setup](#supabase-and-database-setup)). No lessons, vocabulary, storage, AI or deployment exist yet.
+**Slice 1 in progress — private sign-in → admission → onboarding → empty dashboard.** Implemented: Google sign-in through Supabase Auth, Owner-approved admission, OWNER/LEARNER permissions with ownership checks in the server DAL, onboarding (learning languages + timezone), an empty-state dashboard and the database schema/migrations. Not yet done against the cloud project: applying migrations, enabling the runtime role and a real Google sign-in (see [Supabase and database setup](#supabase-and-database-setup)). No lessons, vocabulary, storage, AI or deployment exist yet.
 
-Accepted decisions are recorded in [docs/DECISIONS.md](docs/DECISIONS.md): Supabase Auth with email OTP, private admission, Prisma + SQL migrations, a dedicated Supabase dev project, Tailwind only, system fonts, zh/ja/en. Still proposed/open: target devices, hosting, Vietnamese UI as final, visual identity, storage provider.
+Accepted decisions are recorded in [docs/DECISIONS.md](docs/DECISIONS.md): Supabase Auth with Google OAuth, private admission, Prisma + SQL migrations, a dedicated Supabase dev project, Tailwind only, system fonts, zh/ja/en. Still proposed/open: target devices, hosting, Vietnamese UI as final, visual identity, storage provider.
 
 ## Planned MVP
 
@@ -66,8 +66,8 @@ Verified on macOS with Node.js 24.21.0 and npm 11.19.0 (2026-10-17).
 | Runtime | Node.js `>=22.12.0` (`engines`; Vitest 5 requirement); `.nvmrc` pins major 24 |
 | Package manager | npm, single `package-lock.json` |
 | Install | `npm ci` |
-| Development | `npm run dev` → http://localhost:3000 (runs `prisma generate` first) |
-| Production build / serve | `npm run build`, then `npm start` → http://localhost:3000 |
+| Development | `npm run dev` → http://localhost:8080 (runs `prisma generate` first; `PORT=… npm run dev` overrides) |
+| Production build / serve | `npm run build`, then `npm start` → http://localhost:8080 (`PORT` overrides) |
 | Lint | `npm run lint` (ESLint CLI with `eslint-config-next` core-web-vitals + TypeScript) |
 | Typecheck | `npm run typecheck` (`prisma generate && next typegen && tsc --noEmit`; no database needed) |
 | Tests | `npm test` (Vitest: unit, component and PGlite database tests; no network or secrets); `npm run test:watch` |
@@ -138,23 +138,37 @@ For an approved local setup, copy the example to a local ignored file supported 
 Order matters. Steps marked **approval** write to the Supabase dev project or create credentials (AGENTS.md §6); never paste passwords or connection strings into chat or Git.
 
 1. **CA certificate** (public): Dashboard → Database → Settings → SSL Configuration → *Download certificate*; save outside the repo, e.g. `~/.config/kiko/supabase-ca.crt`.
-2. **`DIRECT_URL`** in `.env.local`: session pooler, `postgres.<ref>@<region>.pooler.supabase.com:5432`, followed by `?sslmode=require&sslaccept=strict&sslcert=<absolute CA path>`. Check read-only: `npm run db:migrate:status` must list the pending migrations.
+2. **`DIRECT_URL`** in `.env.local`: session pooler, `postgres.<ref>@<region>.pooler.supabase.com:5432`, followed by `?sslmode=require&sslaccept=strict&sslcert=<absolute CA path>` (a path without spaces, e.g. `~/.config/kiko/supabase-ca.crt`). Check read-only: `npm run db:migrate:status` must list the pending migrations. The `db:migrate:*` scripts run Prisma through a verified loopback TLS tunnel, because Prisma on macOS rejects Supabase's pooler certificate (DEC-019); do not call `npx prisma migrate …` against Supabase directly.
 3. **Enforce SSL** (Dashboard → Database → Settings → SSL Configuration) so unencrypted connections are refused. Recommended: then reset the database password (Database → Settings) and update `DIRECT_URL`, because earlier probes ran without TLS (OPEN-003).
-4. **Email templates** (Authentication → Emails → Templates): *Magic link or OTP* **and** *Confirm sign up* must contain `{{ .Token }}` and no `{{ .ConfirmationURL }}` (see below). Optionally set *Email OTP expiration* to 600 s (Authentication → Sign In / Providers → Email).
+4. **Google OAuth** — see *Google sign-in configuration* below.
 5. **Apply migrations — approval:** `npm run db:migrate:deploy`.
 6. **Runtime credential — approval:** `npm run db:provision-runtime -- --yes`. Writes `DATABASE_URL` to `.env.local`; prints no secret.
-7. **First Owner — approval:** `npm run kiko:admin -- admit --email <owner email> --roles OWNER,LEARNER --yes`.
-8. `npm run dev`, sign in with the approved email, complete onboarding.
+7. **First Owner — approval:** `npm run kiko:admin -- admit --email <owner Google email> --roles OWNER,LEARNER --yes`.
+8. `npm run dev`, open **http://localhost:8080** (not `127.0.0.1`: cookies are per host), sign in with Google, complete onboarding.
 
-Email template used by the code (OTP only, 6–10 digits accepted):
+### Google sign-in configuration
 
-```html
-<h2>Mã đăng nhập Kiko</h2>
-<p>Mã đăng nhập của bạn là:</p>
-<p style="font-size:28px;letter-spacing:6px"><strong>{{ .Token }}</strong></p>
-<p>Nhập mã này trên trang đăng nhập Kiko. Mã chỉ dùng một lần và sẽ hết hạn.</p>
-<p>Nếu bạn không yêu cầu mã, hãy bỏ qua email này.</p>
-```
+Kiko uses Supabase's server-side PKCE flow (DEC-018). The Google client secret is stored only in Supabase; Kiko's code and `.env.local` never need it.
+
+**Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID (type: Web application)**
+
+| Field | Value |
+|---|---|
+| Authorized JavaScript origins | `http://localhost:8080` (remove before production; add the real HTTPS origin then) |
+| Authorized redirect URIs | `https://<project-ref>.supabase.co/auth/v1/callback` — copy the exact value from Supabase → Authentication → Sign In / Providers → Google → *Callback URL (for OAuth)* |
+| OAuth consent screen | Scopes `openid`, `.../auth/userinfo.email`, `.../auth/userinfo.profile`; while in *Testing* status, add the Owner's Google account under *Test users* |
+
+**Supabase Dashboard**
+
+| Setting | Value |
+|---|---|
+| Authentication → Sign In / Providers → Google | Enabled; Client ID and Client secret from Google |
+| Authentication → URL Configuration → Site URL | `http://localhost:8080` |
+| Authentication → URL Configuration → Redirect URLs | `http://localhost:8080/auth/callback` (exact; no wildcard) |
+| Authentication → Sign In / Providers → Email (and Phone, Anonymous) | Recommended **disabled** — Kiko rejects non-OAuth sessions anyway (OPEN-002) |
+| Allow new users to sign up | Keep enabled: an approved Google account is created at first sign-in; Kiko admission still decides access |
+
+Flow: `/sign-in` → Server Action `signInWithGoogle` → Google → `https://<project-ref>.supabase.co/auth/v1/callback` → `http://localhost:8080/auth/callback` (code exchange) → `/` → admission (`/onboarding` or `/access-denied`).
 
 Suspend/reactivate: `npm run kiko:admin -- suspend --email … --yes` (the next request is denied). Known limits: OPEN-002/003/004 in DECISIONS.md.
 
@@ -180,4 +194,4 @@ Source-code license has not been selected; do not label this project MIT/open so
 
 ## Next step
 
-Finish slice 1 against the dev project (setup steps 4–7 above, then a manual OTP sign-in and suspension check). Next slice: KIKO-008 lesson CRUD and library.
+Finish slice 1 against the dev project (setup steps 4–7 above, then a manual Google sign-in and suspension check). Next slice: KIKO-008 lesson CRUD and library.

@@ -54,6 +54,15 @@ async function allow(email: string, roles: string[]) {
   }
 }
 
+/** kiko.is_email_admissible as the runtime role (SQL function kept; DEC-018). */
+async function admissible(email: string): Promise<boolean> {
+  const { rows } = await app.query<{ ok: boolean }>(
+    "SELECT kiko.is_email_admissible('supabase', $1) AS ok",
+    [email],
+  );
+  return rows[0].ok;
+}
+
 function onboardingForm(languages: string[], timezone = "Asia/Ho_Chi_Minh", extra: [string, string][] = []) {
   const data = new FormData();
   for (const code of languages) data.append("languages", code);
@@ -105,8 +114,8 @@ describe("Prisma identity repository as kiko_app", () => {
   it("checks admissibility without exposing the allowlist", async () => {
     const a = synthetic("adm");
     await allow(a.email, ["LEARNER"]);
-    expect(await repository.isEmailAdmissible("supabase", a.email)).toBe(true);
-    expect(await repository.isEmailAdmissible("supabase", synthetic("no").email)).toBe(false);
+    expect(await admissible(a.email)).toBe(true);
+    expect(await admissible(synthetic("no").email)).toBe(false);
   });
 
   it("admits once, returns roles and finds the profile", async () => {
@@ -308,14 +317,14 @@ describe("scripts/kiko-admin.mjs", () => {
     await expect(run(["admit", "--email", x.email, "--roles", "LEARNER"])).rejects.toMatchObject({
       stderr: expect.stringContaining("Re-run with --yes"),
     });
-    expect(await repository.isEmailAdmissible("supabase", x.email)).toBe(false);
+    expect(await admissible(x.email)).toBe(false);
   });
 
   it("admits, suspends and reactivates an account", async () => {
     const x = synthetic("cli");
     const admitted = await run(["admit", "--email", x.email, "--roles", "LEARNER", "--yes"]);
     expect(admitted.stdout).toContain("Target: localhost");
-    expect(await repository.isEmailAdmissible("supabase", x.email)).toBe(true);
+    expect(await admissible(x.email)).toBe(true);
 
     const provider = new FakeIdentityProvider(identity(x.subject, x.email));
     await activeActor(provider);

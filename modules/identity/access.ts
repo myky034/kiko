@@ -1,4 +1,5 @@
 import { isRoleCode, permissionsForRoles } from "@/server/policy/permissions";
+import { ACCEPTED_AUTH_METHODS } from "./provider-identity";
 import {
   AUTH_PROVIDER,
   type AccessDecision,
@@ -16,9 +17,11 @@ export type AccessDependencies = {
  * Resolves the Kiko actor for the current request (ACCESS_CONTROL.md §8).
  *
  * 1. Verified provider session (signature-checked), never client-supplied ids.
- * 2. Kiko admission: a provider identity alone grants nothing. First sign-in is
- *    admitted only for a pre-approved, provider-confirmed email.
- * 3. Account state and roles are read from the database on every call; there is
+ * 2. Only OAuth (Google) sessions are accepted, so a password/OTP identity that
+ *    Supabase linked to the same user by email cannot reuse the account.
+ * 3. Kiko admission: a provider identity alone grants nothing. First sign-in is
+ *    admitted only for a pre-approved email that Google verified.
+ * 4. Account state and roles are read from the database on every call; there is
  *    no cross-request role cache, so suspension applies to the next request.
  */
 export async function resolveAccess({
@@ -28,6 +31,9 @@ export async function resolveAccess({
   const identity = await provider.getVerifiedIdentity();
   if (!identity) return { status: "unauthenticated" };
   if (identity.isAnonymous) return { status: "denied", reason: "anonymous_identity" };
+  if (!identity.authMethods.some((method) => ACCEPTED_AUTH_METHODS.has(method))) {
+    return { status: "denied", reason: "unsupported_sign_in_method" };
+  }
 
   let profile: ProfileRecord | null = await repository.findProfileBySubject(
     AUTH_PROVIDER,
@@ -36,9 +42,9 @@ export async function resolveAccess({
 
   if (!profile) {
     if (!identity.email) return { status: "denied", reason: "not_admitted" };
-    // Binding an approved email to this subject requires the provider to
-    // confirm the address; an unverified email claim must not claim an account.
-    if (!(await provider.isEmailConfirmed(identity))) {
+    // Binding an approved email to this subject requires Google to have
+    // verified the address; an unverified email claim must not claim an account.
+    if (!(await provider.isEmailVerifiedByProvider(identity))) {
       return { status: "denied", reason: "email_unverified" };
     }
     const admittedId = await repository.admitIdentity(

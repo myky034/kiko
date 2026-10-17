@@ -327,7 +327,7 @@ Tests must cover API/Server Actions, database/runtime role, storage policies, ex
 
 ## 18. Open decisions and change control
 
-**Status 2026-10-17 (see DECISIONS.md):** auth provider/method selected (Supabase Auth, email OTP); runtime/database privileges implemented as `kiko_app` with column-level grants and SECURITY DEFINER admission; revocation checks account state and revision on every request; Owner bootstrap is the operator script `scripts/kiko-admin.mjs` (no web route). Still open: storage semantics, admission UX beyond the script, role changes and last-Owner protection.
+**Status 2026-10-17 (see DECISIONS.md):** auth provider/method selected (Supabase Auth, Google OAuth with PKCE; only OAuth sessions accepted; first admission requires a Google-verified email); runtime/database privileges implemented as `kiko_app` with column-level grants and SECURITY DEFINER admission; revocation checks account state and revision on every request; Owner bootstrap is the operator script `scripts/kiko-admin.mjs` (no web route). Still open: storage semantics, admission UX beyond the script, role changes and last-Owner protection.
 
 Before implementation, select auth provider/method, exact session/revocation mechanism, runtime/database privileges, storage expiry and overwrite semantics, and Owner bootstrap procedure. Before broader access, decide account admission UX, data retention/deletion, sharing consent, quota defaults, and support operations.
 

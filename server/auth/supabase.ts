@@ -9,8 +9,13 @@ import {
   type VerifiedIdentity,
 } from "@/modules/identity/types";
 import { normalizeEmail } from "@/modules/identity/email";
+import { hasVerifiedGoogleEmail } from "@/modules/identity/provider-identity";
 
-/** Per-request Supabase client bound to the request cookies. */
+/**
+ * Per-request Supabase client bound to the request cookies. Uses the PKCE flow
+ * (the @supabase/ssr default): the code verifier lives in a cookie set when
+ * the OAuth sign-in starts and is consumed in /auth/callback.
+ */
 export async function createSupabaseServerClient(): Promise<SupabaseClient> {
   const env = getPublicEnv();
   const cookieStore = await cookies();
@@ -34,6 +39,13 @@ export async function createSupabaseServerClient(): Promise<SupabaseClient> {
   });
 }
 
+function authMethodsOf(amr: unknown): string[] {
+  if (!Array.isArray(amr)) return [];
+  return amr
+    .map((entry) => (typeof entry === "string" ? entry : (entry as { method?: unknown })?.method))
+    .filter((method): method is string => typeof method === "string");
+}
+
 export function createSupabaseIdentityProvider(supabase: SupabaseClient): IdentityProvider {
   return {
     async getVerifiedIdentity(): Promise<VerifiedIdentity | null> {
@@ -41,23 +53,23 @@ export function createSupabaseIdentityProvider(supabase: SupabaseClient): Identi
       // trusted for authorization on the server.
       const { data, error } = await supabase.auth.getClaims();
       if (error || !data) return null;
-      const { sub, email, is_anonymous: isAnonymous } = data.claims;
+      const { sub, email, is_anonymous: isAnonymous, amr } = data.claims;
       if (typeof sub !== "string" || sub.length === 0) return null;
       return {
         provider: AUTH_PROVIDER,
         subject: sub,
         email: typeof email === "string" && email.length > 0 ? normalizeEmail(email) : null,
         isAnonymous: isAnonymous === true,
+        authMethods: authMethodsOf(amr),
       };
     },
 
-    async isEmailConfirmed(identity) {
+    async isEmailVerifiedByProvider(identity) {
       // Network call to Supabase Auth; only used once, at first admission.
+      if (!identity.email) return false;
       const { data, error } = await supabase.auth.getUser();
-      const user = data.user;
-      if (error || !user || user.id !== identity.subject) return false;
-      if (!user.email || !user.email_confirmed_at) return false;
-      return identity.email !== null && normalizeEmail(user.email) === identity.email;
+      if (error) return false;
+      return hasVerifiedGoogleEmail(data.user, identity.subject, identity.email);
     },
   };
 }

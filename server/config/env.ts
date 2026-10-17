@@ -68,6 +68,25 @@ const serverSchema = z.object({
     .refine(isSupportedTimeZone, "not an IANA timezone"),
 });
 
+/**
+ * Canonical public origin of this Kiko deployment (DEC-018). OAuth redirects
+ * and post-login redirects are built from it, never from request Host or
+ * X-Forwarded-Host headers. Plain http is allowed for loopback only.
+ */
+const appOriginSchema = z.object({
+  KIKO_APP_ORIGIN: z
+    .url({ protocol: /^https?$/ })
+    .refine((value) => {
+      const url = new URL(value);
+      return url.origin === value.replace(/\/$/, "") && url.pathname === "/" && !url.search && !url.hash;
+    }, "must be an origin without path, query or fragment")
+    .refine((value) => {
+      const url = new URL(value);
+      return url.protocol === "https:" || LOOPBACK_HOSTS.has(url.hostname);
+    }, "http is allowed for localhost only")
+    .transform((value) => new URL(value).origin),
+});
+
 export type PublicEnv = z.infer<typeof publicSchema>;
 export type ServerEnv = z.infer<typeof serverSchema>;
 
@@ -95,4 +114,8 @@ export function getServerEnv(): ServerEnv {
   });
 }
 
-export const __testing = { publicSchema, serverSchema };
+export function getAppOrigin(): string {
+  return parse(appOriginSchema, { KIKO_APP_ORIGIN: process.env.KIKO_APP_ORIGIN }).KIKO_APP_ORIGIN;
+}
+
+export const __testing = { publicSchema, serverSchema, appOriginSchema };

@@ -37,12 +37,6 @@ export function createPrismaIdentityRepository(client: () => PrismaClient): Iden
       return rows[0]?.id ?? null;
     },
 
-    async isEmailAdmissible(provider, email) {
-      const rows = await client().$queryRaw<{ admissible: boolean }[]>`
-        SELECT kiko.is_email_admissible(${provider}, ${email}) AS admissible`;
-      return rows[0]?.admissible === true;
-    },
-
     async listRoleCodes(userId) {
       const roles = await client().userRole.findMany({
         where: { userId },

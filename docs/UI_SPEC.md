@@ -99,7 +99,7 @@ Show only configured login methods; no fake Google/email buttons. No public regi
 
 Acceptance: keyboard usable; auth errors do not leak account existence beyond provider behavior; browser permissions are not requested here.
 
-Slice 1 (2026-10-17): two steps — email, then the emailed OTP code. The response after step 1 is identical for approved and unapproved emails. Onboarding (`/onboarding`) asks for learning languages and timezone only (DEC-003).
+Slice 1 (2026-10-17, DEC-018): one action — *Đăng nhập bằng Google*. After Google returns, an unapproved or suspended account lands on `/access-denied`; only known error codes are shown on `/sign-in` (cancelled, failed, configuration). Onboarding (`/onboarding`) asks for learning languages and timezone only (DEC-003).
 
 ### UI02 — Home
 

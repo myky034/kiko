@@ -33,7 +33,19 @@ describe("resolveAccess", () => {
     expect(store.profiles.size).toBe(0);
   });
 
-  it("does not admit an approved email the provider has not confirmed", async () => {
+  it.each([[["password"]], [["otp"]], [["magiclink"]], [[]]])(
+    "denies a non-OAuth session %j even for an approved, admitted account",
+    async (methods) => {
+      store.allowEmail("a@example.test", ["OWNER", "LEARNER"]);
+      await access(new FakeIdentityProvider(identity("s-a", "a@example.test")));
+      const result = await access(
+        new FakeIdentityProvider(identity("s-a", "a@example.test", false, methods)),
+      );
+      expect(result).toEqual({ status: "denied", reason: "unsupported_sign_in_method" });
+    },
+  );
+
+  it("does not admit an approved email that Google has not verified", async () => {
     store.allowEmail("a@example.test", ["OWNER", "LEARNER"]);
     const result = await access(new FakeIdentityProvider(identity("s-a", "a@example.test"), false));
     expect(result).toEqual({ status: "denied", reason: "email_unverified" });

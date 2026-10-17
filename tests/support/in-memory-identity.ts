@@ -78,10 +78,6 @@ export class InMemoryIdentityStore implements IdentityRepository {
     return id;
   }
 
-  async isEmailAdmissible(_provider: string, email: string) {
-    return this.admissions.get(email.trim().toLowerCase())?.status === "active";
-  }
-
   async listRoleCodes(userId: string) {
     return [...(this.roles.get(userId) ?? [])];
   }
@@ -125,18 +121,25 @@ export class InMemoryIdentityStore implements IdentityRepository {
 export class FakeIdentityProvider implements IdentityProvider {
   constructor(
     public identity: VerifiedIdentity | null,
-    public emailConfirmed = true,
+    /** Whether Google verified the email (admission precondition). */
+    public emailVerified = true,
   ) {}
 
   async getVerifiedIdentity() {
     return this.identity;
   }
 
-  async isEmailConfirmed() {
-    return this.emailConfirmed;
+  async isEmailVerifiedByProvider() {
+    return this.emailVerified;
   }
 }
 
-export function identity(subject: string, email: string | null, isAnonymous = false): VerifiedIdentity {
-  return { provider: "supabase", subject, email, isAnonymous };
+/** Synthetic verified session; defaults to a Google OAuth sign-in. */
+export function identity(
+  subject: string,
+  email: string | null,
+  isAnonymous = false,
+  authMethods: readonly string[] = ["oauth"],
+): VerifiedIdentity {
+  return { provider: "supabase", subject, email, isAnonymous, authMethods };
 }
