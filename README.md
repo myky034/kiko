@@ -28,23 +28,24 @@ No pronunciation/handwriting scores, AI conversations, unrestricted URL import, 
 
 ## Documents
 
-`AGENTS.md` and this README stay at the repository root; project documents live in `docs/`:
+`AGENTS.md` and this README stay at the repository root; project documents live in `docs/`, grouped into `product/`, `research/`, `ux/` and `engineering/` (index: [docs/README.md](docs/README.md)):
 
 | File | Purpose |
 |---|---|
 | [AGENTS.md](AGENTS.md) | Provider-neutral instructions for AI coding agents |
-| [docs/PROJECT_SPEC.md](docs/PROJECT_SPEC.md) | Product scope and acceptance criteria |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Modules, data flow, deployment and operational design |
-| [docs/ACCESS_CONTROL.md](docs/ACCESS_CONTROL.md) | Roles, permissions, ownership and enforcement |
-| [docs/UI_SPEC.md](docs/UI_SPEC.md) | Screens, interaction and responsive states |
-| [docs/DATA_MODEL.md](docs/DATA_MODEL.md) | Entities, relations, constraints and retention |
-| [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) | Ordered slices/tasks and completion gates |
-| [docs/TEST_PLAN.md](docs/TEST_PLAN.md) | Tests, environments, release gates and evidence |
-| [docs/design-system.md](docs/design-system.md) | Proposed visual design system (tokens, components) |
+| [docs/README.md](docs/README.md) | Index of all project documents |
+| [docs/product/PROJECT_SPEC.md](docs/product/PROJECT_SPEC.md) | Product scope and acceptance criteria |
+| [docs/engineering/ARCHITECTURE.md](docs/engineering/ARCHITECTURE.md) | Modules, data flow, deployment and operational design |
+| [docs/engineering/ACCESS_CONTROL.md](docs/engineering/ACCESS_CONTROL.md) | Roles, permissions, ownership and enforcement |
+| [docs/ux/UI_SPEC.md](docs/ux/UI_SPEC.md) | Screens, interaction and responsive states |
+| [docs/engineering/DATA_MODEL.md](docs/engineering/DATA_MODEL.md) | Entities, relations, constraints and retention |
+| [docs/engineering/IMPLEMENTATION_PLAN.md](docs/engineering/IMPLEMENTATION_PLAN.md) | Ordered slices/tasks and completion gates |
+| [docs/engineering/TEST_PLAN.md](docs/engineering/TEST_PLAN.md) | Tests, environments, release gates and evidence |
+| [docs/ux/DESIGN_SYSTEM.md](docs/ux/DESIGN_SYSTEM.md) | Proposed visual design system (tokens, components) |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Accepted, derived and open decisions |
 | [.env.example](.env.example) | Configuration contract with placeholders |
 
-Documents refer to each other by bare file name (e.g. `PROJECT_SPEC.md`); those names resolve inside `docs/`. The spec's role section (§5) is aligned with ACCESS_CONTROL.md as of spec v1.1. ADR/decision records should distinguish Proposed, Accepted and Deferred choices.
+Documents refer to each other by bare file name (e.g. `PROJECT_SPEC.md`); file names are unique across `docs/`, and [docs/README.md](docs/README.md) shows which folder each one is in. The spec's role section (§5) is aligned with ACCESS_CONTROL.md as of spec v1.1. ADR/decision records should distinguish Proposed, Accepted and Deferred choices.
 
 ## Getting started — documentation stage
 
@@ -116,7 +117,7 @@ proxy.ts             Session refresh only; authorization lives in the server DAL
 tests/               unit/, db/ (PGlite), integration/ (local PostgreSQL), component tests, support/
 ```
 
-Design tokens (color, typography, spacing, radius, elevation, layout) are defined once in `app/globals.css` with Tailwind's `@theme`, following `docs/design-system.md` plus AA-compliant `*-strong` variants (DEC-009), e.g. `bg-primary-strong`, `text-muted-foreground`, `rounded-2xl`, `shadow-card`, `max-w-content`. Fonts are system stacks with per-language fallbacks selected through `lang` attributes (`zh`, `ja`, `zh-Latn-pinyin`, `en-fonipa`), so no font is downloaded at build time.
+Design tokens (color, typography, spacing, radius, elevation, layout) are defined once in `app/globals.css` with Tailwind's `@theme`, following `docs/ux/DESIGN_SYSTEM.md` plus AA-compliant `*-strong` variants (DEC-009), e.g. `bg-primary-strong`, `text-muted-foreground`, `rounded-2xl`, `shadow-card`, `max-w-content`. Fonts are system stacks with per-language fallbacks selected through `lang` attributes (`zh`, `ja`, `zh-Latn-pinyin`, `en-fonipa`), so no font is downloaded at build time.
 
 `next.config.ts` sets `agentRules: false`: Next.js 16.4 `next dev` otherwise appends its own block to this repository's `AGENTS.md`.
 
