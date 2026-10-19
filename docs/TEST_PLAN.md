@@ -175,3 +175,22 @@ P0 tasks 002–004 establish device/provider evidence. Tasks 006–007 test auth
 | Version | Date | Change |
 |---|---|---|
 | 1.0 Proposed | 2026-10-16 | Initial Kiko test strategy, cases, release gates and evidence rules |
+
+---
+
+## Research and learner-experience validation (2026-10-19)
+
+These are planned tests, **NOT RUN**, and do not replace the current release gates.
+
+| ID | Proposed test | Evidence required |
+|---|---|---|
+| UX-R01 | Guided vs content-first onboarding prototypes | Observed completion, time, confusion by learner segment |
+| UX-R02 | Capture vocabulary with exact source context | Correct source/version/time snapshot after edit and reload |
+| LRN-R01 | Retrieval before reveal and spaced review | Scheduler/version, repeat-event idempotency, delayed recall measures |
+| LRN-R02 | Distinguish engagement from learning | Separate activity and recall reporting, no unvalidated proficiency claim |
+| LANG-R01 | zh/ja/en capability matrix and future language fallback | Script/notation/handwriting states, Unicode and accessibility checks |
+| AI-R01 | Speech recognition uncertain/wrong, provider unavailable | Honest fallback, retry, no false pronunciation scoring |
+| PRIV-R01 | Consent and deletion for recordings/AI feedback | No external transmission without authorization; deletion/export verified |
+| UX-R03 | Missed days, reduced motion, mobile, keyboard and Vietnamese copy | Usability and accessibility observations |
+
+Recruit exploratory interviewees across beginner/content-led/work/hobby/other goals. Avoid leading questions; record consent, anonymize notes and keep sample limitations visible. Proposed sample: 15–20 interviews and 8–12 prototype participants, not a representative survey. Define baseline and acceptance thresholds before testing. See `RESEARCH_INSIGHTS.md`.

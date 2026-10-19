@@ -388,3 +388,11 @@ Sau P0 mới ước lượng theo evidence, số slice và thời gian rảnh th
 | Phiên bản | Ngày | Nội dung |
 |---|---|---|
 | 1.0 Proposed | 16/10/2026 | Kế hoạch Kiko theo 25 task, gates, dependencies, traceability và pilot; tất cả chưa bắt đầu |
+
+---
+
+## Research-informed discovery gate (2026-10-19)
+
+Documentation-only update: do not reinterpret this as authorization to expand current slices, change DB, create Linear tasks, deploy or enable AI. Before prioritizing new features: (1) recruit diverse Vietnamese-speaking learners; (2) observe real workflows and validate fragmentation/retention problems; (3) compare guided/content-first prototypes; (4) run contextual capture and retrieval pilot; (5) review evidence and explicitly approve PRD/scope revisions.
+
+Keep current implementation dependencies and already completed code intact. Convert validated opportunities into separately estimated backlog items with DoR/AC, language support, privacy/security and measurable learning outcomes. Deferred: teacher marketplace, community, new language releases, payments and unlimited AI. Evidence register: `RESEARCH_INSIGHTS.md`.
