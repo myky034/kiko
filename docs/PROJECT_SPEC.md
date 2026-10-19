@@ -1,6 +1,6 @@
 # Kiko — Project Specification
 
-**Phiên bản:** 1.1 — Draft  
+**Phiên bản:** 1.3 — Draft  
 **Ngày:** 16/10/2026  
 **Chủ dự án:** Vũ Mỹ Kỳ  
 **Ngôn ngữ học:** Trung (`zh`), Nhật (`ja`), Anh (`en`)  
@@ -199,7 +199,7 @@ Sửa phụ đề tạo phiên bản mới. Bản đang học dùng phiên bản
 
 ## 9. Kiến trúc đề xuất
 
-Một ứng dụng web theo module, database PostgreSQL và kho file riêng tư. Giao diện/logic server đề xuất Next.js + TypeScript; Prisma quản lý schema nghiệp vụ; Supabase Auth/Storage là lựa chọn đề xuất, chưa chốt nhà cung cấp/phiên bản. Không cần microservices ở giai đoạn đầu.
+Một ứng dụng web theo module, database PostgreSQL và kho file riêng tư. Giao diện/logic server đề xuất Next.js + TypeScript; Prisma quản lý schema nghiệp vụ; Supabase Auth đã chốt cho đăng nhập bằng Google OAuth (DEC-018, `DECISIONS.md`); Supabase Storage vẫn là đề xuất. Không cần microservices ở giai đoạn đầu.
 
 ```mermaid
 flowchart TD
@@ -350,7 +350,7 @@ Không cam kết lịch tuần trước khi biết thời gian phát triển và
 | Mã | Vấn đề | Giả định tạm / thời điểm chốt |
 |---|---|---|
 | D01 | Thiết bị và browser chính | Chốt ở P0; quyết định codec và trải nghiệm bút |
-| D02 | Phương thức auth | Một owner allowlist; chọn provider trước P1 |
+| D02 | Phương thức auth | **Đã chốt 17/10/2026:** Supabase Auth, đăng nhập Google OAuth (thay OTP email); email được Owner cấp quyền trước, không đăng ký công khai (DEC-018, DEC-002) |
 | D03 | Trung giản thể/phồn thể | Schema hỗ trợ phân biệt, bộ mẫu do chủ dự án chọn |
 | D04 | Giọng Anh | Không gán mặc định khi nguồn chưa rõ |
 | D05 | Nguồn media | File có quyền dùng trước; URL tích hợp riêng sau |
@@ -378,6 +378,8 @@ Tham khảo sản phẩm: https://corodomo.com/ ; https://skritter.com/features/
 |---|---|---|
 | 1.0 Draft | 16/10/2026 | Đặc tả Kiko cho Trung–Nhật–Anh dựa trên brief/architecture nháp trong cuộc trò chuyện; bổ sung yêu cầu có mã, quy tắc dữ liệu và nghiệm thu |
 | 1.1 Draft | 16/10/2026 | §5 đồng bộ với ACCESS_CONTROL.md: hai role OWNER/LEARNER + ownership thay cho mô hình gộp Owner/Learner |
+| 1.2 Draft | 17/10/2026 | D02 và §9 cập nhật theo quyết định auth đã chốt (DECISIONS.md) |
+| 1.3 Draft | 17/10/2026 | D02: Google OAuth thay OTP email (DEC-018) |
 
 ---
 

@@ -1,0 +1,170 @@
+// Kiko business schema, owned by Prisma Migrate (docs/DECISIONS.md, DEC-006).
+//
+// Everything Prisma cannot express lives in hand-written SQL migrations next to
+// the generated ones: CHECK constraints, reference data, the kiko_app runtime
+// role, grants, RLS policies and the controlled admission function.
+// Tables live in the dedicated `kiko` schema, which the Supabase Data API does
+// not expose.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["kiko"]
+}
+
+enum AccountState {
+  pending
+  active
+  suspended
+  removed
+
+  @@map("account_state")
+  @@schema("kiko")
+}
+
+enum AdmissionStatus {
+  active
+  revoked
+
+  @@map("admission_status")
+  @@schema("kiko")
+}
+
+/// Supported target languages (zh, ja, en). Seeded by migration.
+model Language {
+  code String @id
+
+  preferences UserLanguagePreference[]
+
+  @@map("language")
+  @@schema("kiko")
+}
+
+/// Fixed role registry (OWNER, LEARNER). Seeded by migration.
+model Role {
+  code String @id
+
+  userRoles           UserRole[]
+  allowedAccountRoles AllowedAccountRole[]
+
+  @@map("role")
+  @@schema("kiko")
+}
+
+/// Kiko account bound to one provider identity. Created only by
+/// kiko.admit_identity(); the web runtime can update preference columns only.
+model UserProfile {
+  id                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authProvider          String       @map("auth_provider")
+  authSubject           String       @map("auth_subject")
+  /// IANA timezone; null until onboarding.
+  timezone              String?
+  interfaceLanguage     String       @default("vi") @map("interface_language")
+  state                 AccountState @default(pending)
+  /// Incremented whenever state or roles change; guards in-flight writes.
+  authorizationRevision Int          @default(1) @map("authorization_revision")
+  onboardedAt           DateTime?    @map("onboarded_at") @db.Timestamptz(6)
+  version               Int          @default(1)
+  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  roles                UserRole[]               @relation("UserRoleUser")
+  assignedRoles        UserRole[]               @relation("UserRoleAssignedBy")
+  languagePreferences  UserLanguagePreference[]
+  boundAllowedAccounts AllowedAccount[]         @relation("AllowedAccountBoundUser")
+  admittedAccounts     AllowedAccount[]         @relation("AllowedAccountAdmittedBy")
+  auditEvents          AuditEvent[]
+
+  @@unique([authProvider, authSubject])
+  @@map("user_profile")
+  @@schema("kiko")
+}
+
+/// Email admitted by an Owner/operator before first sign-in. Bound to the
+/// provider subject at first admission so later email changes cannot rebind it.
+model AllowedAccount {
+  id           String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authProvider String          @default("supabase") @map("auth_provider")
+  /// Normalized (trimmed, lower-case); enforced by CHECK.
+  email        String
+  status       AdmissionStatus @default(active)
+  boundSubject String?         @map("bound_subject")
+  boundUserId  String?         @map("bound_user_id") @db.Uuid
+  admittedById String?         @map("admitted_by") @db.Uuid
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  boundUser  UserProfile?         @relation("AllowedAccountBoundUser", fields: [boundUserId], references: [id], onDelete: Restrict)
+  admittedBy UserProfile?         @relation("AllowedAccountAdmittedBy", fields: [admittedById], references: [id], onDelete: Restrict)
+  roles      AllowedAccountRole[]
+
+  @@unique([authProvider, email])
+  @@unique([authProvider, boundSubject])
+  @@map("allowed_account")
+  @@schema("kiko")
+}
+
+/// Roles granted on admission.
+model AllowedAccountRole {
+  allowedAccountId String @map("allowed_account_id") @db.Uuid
+  roleCode         String @map("role_code")
+
+  allowedAccount AllowedAccount @relation(fields: [allowedAccountId], references: [id], onDelete: Cascade)
+  role           Role           @relation(fields: [roleCode], references: [code], onDelete: Restrict)
+
+  @@id([allowedAccountId, roleCode])
+  @@map("allowed_account_role")
+  @@schema("kiko")
+}
+
+model UserRole {
+  userId       String   @map("user_id") @db.Uuid
+  roleCode     String   @map("role_code")
+  assignedById String?  @map("assigned_by") @db.Uuid
+  assignedAt   DateTime @default(now()) @map("assigned_at") @db.Timestamptz(6)
+
+  user       UserProfile  @relation("UserRoleUser", fields: [userId], references: [id], onDelete: Restrict)
+  role       Role         @relation(fields: [roleCode], references: [code], onDelete: Restrict)
+  assignedBy UserProfile? @relation("UserRoleAssignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
+
+  @@id([userId, roleCode])
+  @@map("user_role")
+  @@schema("kiko")
+}
+
+/// Learning languages chosen by the learner; a preference, not a permission.
+model UserLanguagePreference {
+  userId       String   @map("user_id") @db.Uuid
+  languageCode String   @map("language_code")
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user     UserProfile @relation(fields: [userId], references: [id], onDelete: Restrict)
+  language Language    @relation(fields: [languageCode], references: [code], onDelete: Restrict)
+
+  @@id([userId, languageCode])
+  @@map("user_language_preference")
+  @@schema("kiko")
+}
+
+/// Append-only security/admin audit trail. No tokens, emails or content.
+model AuditEvent {
+  id          BigInt   @id @default(autoincrement())
+  occurredAt  DateTime @default(now()) @map("occurred_at") @db.Timestamptz(6)
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  action      String
+  targetType  String?  @map("target_type")
+  targetId    String?  @map("target_id")
+  result      String
+
+  actor UserProfile? @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([occurredAt])
+  @@map("audit_event")
+  @@schema("kiko")
+}
