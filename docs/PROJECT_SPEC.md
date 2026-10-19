@@ -378,3 +378,21 @@ Tham khảo sản phẩm: https://corodomo.com/ ; https://skritter.com/features/
 |---|---|---|
 | 1.0 Draft | 16/10/2026 | Đặc tả Kiko cho Trung–Nhật–Anh dựa trên brief/architecture nháp trong cuộc trò chuyện; bổ sung yêu cầu có mã, quy tắc dữ liệu và nghiệm thu |
 | 1.1 Draft | 16/10/2026 | §5 đồng bộ với ACCESS_CONTROL.md: hai role OWNER/LEARNER + ownership thay cho mô hình gộp Owner/Learner |
+
+---
+
+## Research-informed product direction (2026-10-19; proposed)
+
+Kiko remains a personal-first learning product, now designed for potential use by a broader Vietnamese-speaking audience. The problem of fragmented context between reading/listening, vocabulary, speaking, writing and review is an **owner hypothesis**, not a validated population finding. Commercial demand, learning outcomes and segment sizes are unproven.
+
+**Product hypothesis:** Help learners discover or bring meaningful content, understand it, capture contextual knowledge, practise appropriately and retrieve it later, with durable private data. Do not promise exam-score gains.
+
+**Proto-segments (unvalidated):** beginners seeking structure; independent content-led learners; work-oriented communicators; exam-focused learners; hobby learners; multilingual learners. These are recruitment hypotheses, not finalized personas.
+
+**Discovery questions:** How do learners study today? Where is context lost? What makes them return? Do beginners need guided onboarding? Do users want free exploration? Which language-specific exercises matter? Test against existing workflows before promoting features to MVP.
+
+**Scope discipline:** Existing zh/ja/en implementation baseline is unchanged. French/Korean and a Vietnamese-first interface are research/design candidates, not automatically enabled or committed releases. Guided vs Explore, AI speaking, advanced personalization, teacher classes and gamification are experiments or later candidates, not new MVP promises.
+
+**Outcome metrics (definitions to validate):** first meaningful learning action, lesson-to-capture completion, review retrieval success, D7/D30 learner cohorts, return after a break, usability and learner-reported confidence. Engagement alone does not prove learning.
+
+See `RESEARCH_INSIGHTS.md` for evidence levels, decision gates and source caveats.
