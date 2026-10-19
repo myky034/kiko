@@ -99,6 +99,8 @@ Show only configured login methods; no fake Google/email buttons. No public regi
 
 Acceptance: keyboard usable; auth errors do not leak account existence beyond provider behavior; browser permissions are not requested here.
 
+Slice 1 (2026-10-17, DEC-018): one action — *Đăng nhập bằng Google*. After Google returns, an unapproved or suspended account lands on `/access-denied`; only known error codes are shown on `/sign-in` (cancelled, failed, configuration). Onboarding (`/onboarding`) asks for learning languages and timezone only (DEC-003).
+
 ### UI02 — Home
 
 Current language, continue learning, due cards, recent activity and quick create. Empty state: create first lesson/add words. Owner-only sees admin landing rather than failing Learner queries. Do not show fake streaks, time studied or achievement scores. Counts label unique words vs practice attempts.
