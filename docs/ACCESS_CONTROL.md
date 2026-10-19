@@ -336,3 +336,13 @@ A new role, public sharing feature, impersonation capability, automatic personal
 | Version | Date | Change |
 |---|---|---|
 | 1.0 | 2026-10-16 | Initial Kiko access-control specification: Owner/Learner RBAC, ownership, catalog scope, enforcement, revocation, storage/jobs, and tests |
+
+---
+
+## Wider-audience research addendum (2026-10-19)
+
+The existing OWNER/LEARNER RBAC plus resource ownership remains authoritative. Broader audience does **not** imply open registration, shared learner data, teacher access or public publishing. Admission changes require a separate explicit decision and negative security tests.
+
+Onboarding preferences, lesson imports, contextual occurrences, review evidence, voice recordings and AI feedback are private learner data. Treat recording capture and transmission to external AI providers as separate user actions with clear notice, scoped consent and retention rules. Review withdrawal, deletion, export and provider subprocessors before launch; do not claim legal compliance from this document alone.
+
+No teacher/community permissions are granted by the research. Any future roles require a new permission matrix, threat model and isolation tests. See `RESEARCH_INSIGHTS.md`.

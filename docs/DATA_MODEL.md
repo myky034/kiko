@@ -237,3 +237,18 @@ These must be resolved in ADR/schema review before SQL generation. This document
 | Version | Date | Change |
 |---|---|---|
 | 1.0 Proposed | 2026-10-16 | Initial relational model and integrity rules for Kiko, separate private/catalog aggregates and historical snapshots |
+
+---
+
+## Research-informed data model candidates (2026-10-19)
+
+These are design-review candidates only; **do not generate or deploy migrations from this section**.
+
+- Preserve source context on each vocabulary occurrence: lesson/version/segment, immutable text snapshot, optional time range, source rights metadata and language. Keep cross-owner and cross-language integrity constraints.
+- Separate capture from recall evidence: a saved item, a practice attempt, a due review and a demonstrated retrieval are not interchangeable. Existing ReviewEvent can be evaluated for response mode, prompt type, result, scheduler version and timestamp without inferring proficiency.
+- Consider optional onboarding preferences: learning goal, chosen language, self-reported level, preferred session duration and guided/content-first mode. Collect minimally, allow editing and avoid sensitive profiling by default.
+- Model language capabilities explicitly (script, pronunciation notation, handwriting/stroke dataset availability, tone support), not as a global boolean. Only add language codes after content/UX validation.
+- For AI, separate user input, generated feedback, provider transmission consent, retention/deletion and correction status. Do not store raw voice or transcripts by default without a documented need and consent.
+- Keep per-user isolation, export/delete consistency and immutable historical snapshots. Schema changes require ADR, migration review, backward compatibility and security tests.
+
+See `RESEARCH_INSIGHTS.md`.

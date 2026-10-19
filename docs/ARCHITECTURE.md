@@ -410,3 +410,13 @@ Chốt trước bootstrap: stack/version/package manager, auth method, hosting v
 | Phiên bản | Ngày | Thay đổi |
 |---|---|---|
 | 1.0 Proposed | 16/10/2026 | Thiết kế Kiko cho ba ngôn ngữ, modular monolith, RBAC/ownership, media/storage consistency, deployment và vận hành |
+
+---
+
+## Research-informed architecture considerations (2026-10-19)
+
+No stack replacement or production change is authorized by this section. Preserve the modular monolith, current auth/RBAC/ownership boundaries and existing technical decisions. Evaluate a language-capability registry rather than embedding language-specific branching throughout UI. Evaluate a context-preserving learning flow across content, vocabulary, review and progress, with clear service boundaries and stable snapshots.
+
+Guided and content-first entry are alternate orchestration prototypes; do not create parallel data silos. The review scheduler should support versioned algorithms and auditable retrieval events. AI tutoring/speech feedback remains optional behind provider adapters, explicit user controls, budgets, observability and failure fallback. Do not equate speech-recognition output with validated pronunciation scoring.
+
+For wider use, plan load/privacy tests, quota enforcement, per-actor caching, data export/deletion, accessibility and content licensing. Any schema, integration or deployment change needs separate ADR, task and tests. Research hypotheses and sources: `RESEARCH_INSIGHTS.md`.

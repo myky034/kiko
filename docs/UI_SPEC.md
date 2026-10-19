@@ -215,3 +215,15 @@ Visual identity/colors/logo; component/font choice; UI language; target devices/
 | Version | Date | Change |
 |---|---|---|
 | 1.0 Proposed | 2026-10-16 | Initial UI screen/interaction contracts for Kiko |
+
+---
+
+## Research-informed UX proposals (2026-10-19)
+
+Do not replace approved visual tokens or existing screens. Prototype two entry routes before implementation: (A) guided start with goal, language, self-reported level and short first lesson; (B) content-first start using a permitted text/media lesson. Measure task completion, confusion, time to first meaningful action and preference by learner type. Avoid mandatory placement tests without evidence.
+
+Show contextual vocabulary with source sentence/segment, pronunciation notation where supported, retrieval prompt before revealing an answer, and clear review state. Distinguish saved, practised, due and demonstrated recall; never label a learner fluent based on activity counts. Give an easy return path after missed days; streaks and notifications must be optional and non-shaming.
+
+Test Vietnamese explanations, screen-reader labels, keyboard focus, reduced motion, touch writing, microphone denial and small screens. Respect the existing dark glass design direction while maintaining text contrast and low visual distraction. AI feedback should state uncertainty and permit retry/correction; no invented pronunciation accuracy.
+
+All new screens and states are **prototype candidates**, not accepted delivery scope. Refer to `RESEARCH_INSIGHTS.md`.
