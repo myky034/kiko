@@ -26,6 +26,23 @@ enum AccountState {
   @@schema("kiko")
 }
 
+enum LessonStatus {
+  draft
+  ready
+  archived
+
+  @@map("lesson_status")
+  @@schema("kiko")
+}
+
+enum TranscriptState {
+  draft
+  published
+
+  @@map("transcript_state")
+  @@schema("kiko")
+}
+
 enum AdmissionStatus {
   active
   revoked
@@ -39,6 +56,7 @@ model Language {
   code String @id
 
   preferences UserLanguagePreference[]
+  lessons     Lesson[]
 
   @@map("language")
   @@schema("kiko")
@@ -78,6 +96,7 @@ model UserProfile {
   boundAllowedAccounts AllowedAccount[]         @relation("AllowedAccountBoundUser")
   admittedAccounts     AllowedAccount[]         @relation("AllowedAccountAdmittedBy")
   auditEvents          AuditEvent[]
+  lessons              Lesson[]
 
   @@unique([authProvider, authSubject])
   @@map("user_profile")
@@ -166,5 +185,80 @@ model AuditEvent {
 
   @@index([occurredAt])
   @@map("audit_event")
+  @@schema("kiko")
+}
+
+/// Private lesson owned by one Learner (DEC-020, DEC-024). Content lives in
+/// transcript versions; the active one is published and immutable.
+model Lesson {
+  id                 String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId            String       @map("owner_id") @db.Uuid
+  languageCode       String       @map("language_code")
+  title              String
+  status             LessonStatus @default(draft)
+  /// "Ghi chú nguồn" (DEC-023).
+  sourceNote         String?      @map("source_note")
+  /// "Chủ đề" (DEC-023): up to 5 topics.
+  tags               String[]     @default([])
+  /// Optional self-assigned level label (DEC-023); never a certification.
+  levelLabel         String?      @map("level_label")
+  activeTranscriptId String?      @map("active_transcript_id") @db.Uuid
+  /// Idempotency key from the create form.
+  clientRequestId    String?      @map("client_request_id")
+  version            Int          @default(1)
+  archivedAt         DateTime?    @map("archived_at") @db.Timestamptz(6)
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  owner              UserProfile         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  language           Language            @relation(fields: [languageCode], references: [code], onDelete: Restrict)
+  transcriptVersions TranscriptVersion[] @relation("LessonVersions")
+  activeTranscript   TranscriptVersion?  @relation("LessonActiveTranscript", fields: [activeTranscriptId, id], references: [id, lessonId], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([id, ownerId, languageCode])
+  @@unique([ownerId, clientRequestId])
+  @@index([ownerId, status, updatedAt(sort: Desc), id])
+  @@map("lesson")
+  @@schema("kiko")
+}
+
+/// One version of a lesson's text. Published versions are immutable.
+model TranscriptVersion {
+  id               String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  lessonId         String          @map("lesson_id") @db.Uuid
+  ownerId          String          @map("owner_id") @db.Uuid
+  languageCode     String          @map("language_code")
+  versionNo        Int             @map("version_no")
+  state            TranscriptState @default(draft)
+  /// Text exactly as submitted (DEC-021).
+  sourceText       String          @map("source_text")
+  segmentationRule String          @map("segmentation_rule")
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  publishedAt      DateTime?       @map("published_at") @db.Timestamptz(6)
+
+  lesson         Lesson    @relation("LessonVersions", fields: [lessonId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: Cascade)
+  activeInLesson Lesson[]  @relation("LessonActiveTranscript")
+  segments       Segment[]
+
+  @@unique([lessonId, versionNo])
+  @@unique([id, ownerId, languageCode])
+  @@unique([id, lessonId])
+  @@map("transcript_version")
+  @@schema("kiko")
+}
+
+/// One non-blank line of a transcript version, stored verbatim ("đoạn").
+model Segment {
+  id                  String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  transcriptVersionId String @map("transcript_version_id") @db.Uuid
+  ownerId             String @map("owner_id") @db.Uuid
+  languageCode        String @map("language_code")
+  position            Int
+  text                String
+
+  transcriptVersion TranscriptVersion @relation(fields: [transcriptVersionId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([transcriptVersionId, position])
+  @@map("segment")
   @@schema("kiko")
 }

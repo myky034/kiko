@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { DashboardData } from "@/modules/identity/dashboard";
 import { getLanguage } from "@/modules/language/registry";
 import { Card } from "@/components/ui";
@@ -69,7 +70,11 @@ export function DashboardView({ data }: { data: DashboardData }) {
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
             <EmptySection id="continue-title" title="Học tiếp">
-              Chưa có bài học nào. Tạo bài học sẽ có ở lát cắt triển khai tiếp theo.
+              Bài học của bạn nằm trong{" "}
+              <Link href="/library" className="font-medium text-primary-strong underline">
+                Thư viện
+              </Link>
+              . Tạo bài mới hoặc mở lại bài đang học từ đó.
             </EmptySection>
             <EmptySection id="review-title" title="Ôn tập">
               Chưa có thẻ ôn tập. Thẻ sẽ xuất hiện khi bạn lưu từ vựng và thêm vào ôn tập.

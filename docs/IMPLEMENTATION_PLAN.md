@@ -159,6 +159,8 @@ Spike Done nghĩa có kết luận và evidence, không có nghĩa production-re
 
 ### KIKO-010 — Shared catalog tối thiểu và scope
 
+> **Deferred (DEC-020, 17/10/2026):** chưa làm trong các slice hiện tại; bài học riêng theo Learner, bài mẫu tạo bằng script (DEC-025).
+
 **Phụ thuộc:** 008–009. **FR:** FR02, quyền catalog trong Access Control.
 
 **Công việc:** triển khai bản tối thiểu draft/published/retired theo quyết định đã review; Owner quản lý, Learner đọc published. Nội dung mẫu có thể dùng shared catalog này. Không có peer sharing. Chuyển từ private sang catalog là bản sao có lựa chọn và quyền, không toggle toàn bộ visibility.

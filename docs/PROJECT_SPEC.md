@@ -1,6 +1,6 @@
 # Kiko — Project Specification
 
-**Phiên bản:** 1.3 — Draft  
+**Phiên bản:** 1.4 — Draft  
 **Ngày:** 16/10/2026  
 **Chủ dự án:** Vũ Mỹ Kỳ  
 **Ngôn ngữ học:** Trung (`zh`), Nhật (`ja`), Anh (`en`)  
@@ -104,6 +104,8 @@ Giao diện ưu tiên đọc rõ chữ và thao tác học. Phong cách, màu, l
 ### FR02 — Bài học và thư viện [MVP]
 
 Tạo/sửa tiêu đề, ngôn ngữ, chủ đề, mức độ tùy chọn, ghi chú nguồn; lưu nháp, chuyển sẵn sàng, lưu trữ. Bài văn bản không bắt buộc media; bài shadowing bắt buộc nguồn phát được và câu có thời gian hợp lệ. Mức độ do người dùng gán, không tuyên bố chứng nhận HSK/JLPT/CEFR.
+
+*Ánh xạ dữ liệu (DEC-023):* “chủ đề” → `tags` (tối đa 5), “mức độ” → `level_label` tùy chọn, “ghi chú nguồn” → `source_note`. Nội dung văn bản nhập theo dòng (DEC-021).
 
 **Chấp nhận:** thiếu tiêu đề/ngôn ngữ không lưu được; nháp không xuất hiện như bài sẵn sàng; đổi ngôn ngữ của bài đã có từ/lịch sử bị chặn, người dùng tạo bản sao và kiểm tra lại. Lưu trữ ẩn khỏi danh sách mặc định nhưng giữ lịch sử.
 
@@ -380,3 +382,4 @@ Tham khảo sản phẩm: https://corodomo.com/ ; https://skritter.com/features/
 | 1.1 Draft | 16/10/2026 | §5 đồng bộ với ACCESS_CONTROL.md: hai role OWNER/LEARNER + ownership thay cho mô hình gộp Owner/Learner |
 | 1.2 Draft | 17/10/2026 | D02 và §9 cập nhật theo quyết định auth đã chốt (DECISIONS.md) |
 | 1.3 Draft | 17/10/2026 | D02: Google OAuth thay OTP email (DEC-018) |
+| 1.4 Draft | 17/10/2026 | FR02: ánh xạ chủ đề/mức độ/ghi chú nguồn (DEC-023); catalog hoãn (DEC-020) |
