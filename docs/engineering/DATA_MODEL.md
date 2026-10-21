@@ -55,9 +55,9 @@ User state/role changes increment authorization_revision in the same transaction
 
 | Table | Important fields | Constraints |
 |---|---|---|
-| lesson | id, owner_id, language_code, title, status, source metadata, active_transcript_id nullable, version, timestamps | status draft/ready/archived; unique (id,owner_id,language_code) for composite references |
-| transcript_version | id, owner_id, lesson_id, language_code, version_no, state, created_at, published_at nullable | Unique lesson+version_no; composite FK to lesson scope |
-| segment | id, owner_id, transcript_version_id, language_code, position, text, translation nullable, speaker nullable, start_ms/end_ms nullable, reading_annotations JSONB nullable | Unique transcript+position; composite FK to version scope |
+| lesson | id, owner_id, language_code, title, status, source_note, tags (topics, DEC-023), level_label, active_transcript_id nullable, client_request_id, version, archived_at, timestamps | status draft/ready/archived; unique (id,owner_id,language_code) for composite references; unique (owner_id, client_request_id); ready ⇒ active published version; archived ⇔ archived_at |
+| transcript_version | id, owner_id, lesson_id, language_code, version_no, state, source_text, segmentation_rule, created_at, published_at nullable | Unique lesson+version_no; at most one draft per lesson; composite FK to lesson scope; source_text ≤ 100,000 code points (DEC-022) |
+| segment | id, owner_id, transcript_version_id, language_code, position, text, translation nullable, speaker nullable, start_ms/end_ms nullable, reading_annotations JSONB nullable | Unique transcript+position; composite FK to version scope; text verbatim, 1–2,000 code points, no line breaks, position < 2,000 (DEC-021, DEC-022). KIKO-008 creates id…text only; translation/speaker/time/annotations arrive with KIKO-012 |
 | lesson_media | lesson_id, owner_id, media_asset_id, position | Same owner; primary track policy MVP one selected track |
 
 Draft transcript rows may be edited; published versions cannot be updated through normal APIs. Publish validates and atomically updates lesson.active_transcript_id. Active pointer references the same lesson/owner/language; enforce through suitable composite FK or equivalent verified constraint structure. Cyclic insertion is handled by creating lesson with null pointer then version, then pointer update in one use-case transaction.
@@ -65,6 +65,8 @@ Draft transcript rows may be edited; published versions cannot be updated throug
 Time constraint must explicitly allow both null or require both nonnull with start>=0 and end>start. Example intent: `(start IS NULL AND end IS NULL) OR (start IS NOT NULL AND end IS NOT NULL AND start>=0 AND end>start)`. Test partial-null and negative cases. Duration upper bounds depend on linked asset and require application validation/appropriate trigger, not a CHECK that queries another table. Overlap is a warning per spec, not automatic rejection. Language is immutable once dependent data exists.
 
 ## 5. Shared catalog — separate from private content
+
+> **Deferred (DEC-020, 2026-10-17):** no catalog tables are created yet. Columns such as `catalog_segment_id` in later tables are added only when catalog work resumes.
 
 | Table | Important fields | Constraints |
 |---|---|---|

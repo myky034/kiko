@@ -107,11 +107,15 @@ Current language, continue learning, due cards, recent activity and quick create
 
 ### UI03 — Library
 
+> Current scope (DEC-020, DEC-023): personal lessons only — no Catalog tab yet. Topic filter uses `tags`.
+
 Personal/Catalog tabs or equivalent clear separation; language, status and topic filters; search scoped server-side; pagination. Personal cards show title, language, text/media type, state and updated date. Catalog lists published revisions only for Learner.
 
 Actions: open, edit/archive own content; catalog copy-to-private if permitted. No action to edit catalog original for Learner. Changing filters retains accessible focus and does not silently change language of open content.
 
 ### UI04 — Lesson editor/import
+
+> Current scope (DEC-021, DEC-022): text lessons; one textarea where each non-blank line is one “đoạn”, kept verbatim; counters use code points with each line break = 1; over-limit input is rejected with line numbers, never truncated.
 
 Fields: title, target language, source information, tags/level optional; text/media source; transcript editor and optional translation/speaker. Staged import → validation → preview → save draft/publish. Show supported file limits before file selection. No blanket promise to accept any YouTube URL.
 

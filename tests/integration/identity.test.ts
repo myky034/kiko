@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { readdirSync } from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -93,11 +94,12 @@ describe("environment", () => {
     const { rows } = await admin.query<{ migration_name: string }>(
       "SELECT migration_name FROM public._prisma_migrations WHERE finished_at IS NOT NULL ORDER BY 1",
     );
-    expect(rows.map((row) => row.migration_name)).toEqual([
-      "20261017000000_identity_schema",
-      "20261017000100_identity_security",
-      "20261017000200_protect_migration_history",
-    ]);
+    const expected = readdirSync(path.join(process.cwd(), "prisma", "migrations"), { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      .sort();
+    expect(expected.length).toBeGreaterThanOrEqual(5);
+    expect(rows.map((row) => row.migration_name)).toEqual(expected);
   });
 
   it("keeps Prisma's history table away from Supabase API roles", async () => {

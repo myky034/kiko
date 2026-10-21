@@ -13,7 +13,7 @@ type NavItem = {
 
 export const LEARNING_NAV: readonly NavItem[] = [
   { label: "Trang chủ", href: "/", available: true, primaryOnMobile: true },
-  { label: "Thư viện", href: "/library", available: false, primaryOnMobile: true },
+  { label: "Thư viện", href: "/library", available: true, primaryOnMobile: true },
   { label: "Từ vựng", href: "/vocabulary", available: false, primaryOnMobile: false },
   { label: "Luyện chữ", href: "/writing", available: false, primaryOnMobile: false },
   { label: "Ôn tập", href: "/review", available: false, primaryOnMobile: true },

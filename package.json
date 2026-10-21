@@ -15,7 +15,8 @@
     "db:migrate:deploy": "node scripts/prisma-remote.mjs migrate deploy",
     "kiko:admin": "node scripts/kiko-admin.mjs",
     "test:integration": "prisma generate && vitest run --config vitest.integration.config.mts",
-    "db:provision-runtime": "node scripts/provision-runtime-role.mjs"
+    "db:provision-runtime": "node scripts/provision-runtime-role.mjs",
+    "kiko:seed-samples": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/seed-sample-lessons.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
