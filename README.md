@@ -76,6 +76,7 @@ Verified on macOS with Node.js 24.21.0 and npm 11.19.0 (2026-10-17).
 | Migrations | `npm run db:migrate:status` (read-only), `npm run db:migrate:deploy` (writes; manual, needs approval) |
 | Admission | `npm run kiko:admin -- <status\|admit\|revoke\|suspend\|reactivate> --email …` |
 | Runtime credential | `npm run db:provision-runtime -- --yes` (creates/rotates the `kiko_app` password; approval) |
+| Sample lessons | `npm run kiko:seed-samples -- --email <learner email> --yes` — zh/ja/en samples for one signed-in Learner; re-run skips existing (DEC-025; approval for shared databases) |
 | E2E | Not set up yet |
 
 ```bash
@@ -106,9 +107,10 @@ Exact resolved versions are in `package-lock.json`.
 ### Layout
 
 ```text
-app/                 Routes: / (dashboard), /sign-in, /onboarding, /access-denied; Server Actions
+app/                 Routes: / (dashboard), /sign-in, /onboarding, /access-denied, /library, /lessons/new, /lessons/[id] (+ /edit, /delete); Server Actions
 components/          Shared UI built from tokens (app shell, dashboard, form recipes)
 modules/identity/    Access resolution, onboarding, dashboard use cases and ports
+modules/content/     Lessons: line-v1 segmentation and counting (DEC-021/022), form parsing, use cases
 modules/language/    zh/ja/en registry, IANA timezone validation
 server/              auth (Supabase), config (env validation), db (Prisma), policy (permissions)
 prisma/              schema.prisma and migrations (generated + hand-written security SQL)

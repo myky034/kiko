@@ -22,7 +22,7 @@ describe("DashboardView", () => {
 
   it("shows honest empty states and no fabricated numbers", () => {
     const { container } = render(<DashboardView data={learner} />);
-    expect(screen.getByText(/Chưa có bài học nào/)).toBeDefined();
+    expect(screen.getByRole("link", { name: "Thư viện" }).getAttribute("href")).toBe("/library");
     expect(screen.getByText(/Chưa có thẻ ôn tập/)).toBeDefined();
     // No counts, streaks or percentages: the only digits are in the timezone name.
     const text = (container.textContent ?? "").replace("Asia/Ho_Chi_Minh", "");
@@ -39,7 +39,7 @@ describe("DashboardView", () => {
 });
 
 describe("AppShell", () => {
-  it("links only to implemented routes and offers a POST sign-out", () => {
+  it("links only to implemented routes (home, library) and offers a POST sign-out", () => {
     const signOut = async () => {};
     const { container } = render(
       <AppShell currentPath="/" signOutAction={signOut}>
@@ -48,7 +48,7 @@ describe("AppShell", () => {
     );
     const sidebar = screen.getByRole("navigation", { name: "Điều hướng học tập" });
     const links = within(sidebar).getAllByRole("link");
-    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/"]);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/", "/library"]);
     expect(links[0].getAttribute("aria-current")).toBe("page");
     for (const item of sidebar.querySelectorAll('[aria-disabled="true"]')) {
       expect(item.closest("a")).toBeNull();
