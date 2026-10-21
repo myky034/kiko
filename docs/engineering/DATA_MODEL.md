@@ -254,3 +254,37 @@ These are design-review candidates only; **do not generate or deploy migrations 
 - Keep per-user isolation, export/delete consistency and immutable historical snapshots. Schema changes require ADR, migration review, backward compatibility and security tests.
 
 See `RESEARCH_INSIGHTS.md`.
+
+---
+
+## Quiet Bloom learning features — data model candidates (2026-10-21; proposed)
+
+**Proposed only — do not generate migrations from this section.** Each block becomes a migration only inside its slice (IMPLEMENTATION_PLAN KIKO-026 onward), after review. Requirements: PROJECT_SPEC FR14–FR23; decisions DEC-037 → DEC-043. Every new table follows the existing pattern: `owner_id` + `language_code` scope with composite FKs to the parent's `(id, owner_id, language_code)`, RLS `TO kiko_app`, column-level grants, NULL-safe CHECKs with negative tests, and two-learner isolation tests.
+
+**Applied in DEC-037 (migration prepared):** `user_profile.display_name`, `user_profile.current_learning_language` (composite FK to `user_language_preference`), `interface_language` `en`/`vi`, GIN index on `lesson.tags`.
+
+**Reused unchanged from earlier sections:** media (§6), vocabulary / pronunciation / deck / occurrence (§7), character / stroke dataset / writing attempt (§8), shadowing attempt (§9), review card / event (§10, ratings `forgotten / hard / remembered`, DEC-039), study session / activity event (§11), jobs / export / quota (§12).
+
+| Area | New table or column | Important fields | Constraints and notes |
+|---|---|---|---|
+| Lesson (FR14) | `lesson.description`, `lesson.cover_asset_id`, `lesson.estimated_minutes` | description ≤ 500 code points; cover → private `media_asset` of the same owner; minutes 1–600 nullable | Manual values; minutes may later be derived from media duration |
+| Lesson steps (FR14) | `lesson_step_progress` | owner_id, lesson_id, language_code, step (`vocabulary`/`reading`/`listening`/`speaking`/`practice`/`review`), status (`available`/`completed`), completed_at, rule_version, transcript_version_id at completion, timestamps | Unique (owner, lesson, step); composite FK to lesson scope; completed ⇔ completed_at; locked/skipped are computed, not stored |
+| Vocabulary extras (FR05, design) | `vocabulary_item.starred`, `vocabulary_item.tags`, `vocabulary_item.usage`; `vocabulary_example`; `vocabulary_relation` | example: text, reading, translation, audio_asset_id nullable, position; relation: from/to vocabulary, kind (`related`/`synonym`/`antonym`) | Same owner and language on both sides of a relation; example audio is private media |
+| Practice (FR15) | `exercise_set` | owner_id, lesson_id, language_code, generator (`rules`/`ai`), generator_version, seed, transcript_version_id, status, created_at | Snapshot container; AI sets carry `ai_generated = true` and a draft/accepted state |
+| | `exercise` | set_id, owner_id, language_code, position, type (`multiple_choice`/`fill_blank`/`sentence_building`/`listening`), prompt JSONB, options JSONB, answer JSONB, explanation, source_vocabulary_id nullable, source_segment_id nullable | Immutable after creation; JSONB validated by schema version; sources same owner/language |
+| | `exercise_attempt` | owner_id, exercise_id, client_event_id, response JSONB, is_correct, attempted_at | Unique (owner, client_event_id); append-only; one graded attempt locks the question |
+| Speaking (FR16–FR17) | `speaking_session` | owner_id, language_code, kind (`shadowing`/`pronunciation`/`conversation`), lesson_id nullable, scenario nullable, started_at, ended_at | Groups attempts for Speaking history |
+| | `conversation_turn` | session_id, owner_id, role (`learner`/`assistant`), text, audio_asset_id nullable, created_at, retention_until | Stored only with consent; deletable; AI text is untrusted |
+| | `pronunciation_assessment` | owner_id, shadowing_attempt_id, provider, model_version, scores JSONB, created_at | One per attempt + configuration (no duplicate paid calls); never written without a provider result |
+| AI consent (DEC-038) | `ai_consent` | owner_id, feature, granted_at, revoked_at | Checked server-side before any provider call |
+| Goals and streak (FR18) | `learning_goal` | owner_id, language_code, kind (`study_days_per_week`/`reviews_per_week`), target, starts_on, ends_on, status | Positive bounded targets; dates in learner's local calendar |
+| | `daily_activity` (derived rollup) | owner_id, language_code, local_date, counts per activity kind | Rebuildable from authoritative events; streak = consecutive local dates |
+| Levels (FR19) | `user_language_preference.level_framework`, `.level`, `.words_target` | framework (`cefr`/`jlpt`/`hsk`) compatible with language; level from the framework's list; words_target positive | Learner-declared; never inferred |
+| Achievements (FR20) | `user_achievement` | owner_id, code, rule_version, awarded_at, source_event_ref | Unique (owner, code); definitions live in code with versions |
+| Profile and settings (FR21) | `user_profile.avatar_asset_id`, `user_profile.bio`; `user_settings` | settings: daily_goal_minutes, preferred_study_time, learning_mode, review_auto_flip, review_pronounce | Allowlisted updates only; avatar private media of the same owner |
+| | `account_deletion_request` | owner_id, requested_at, confirmed_at, state, completed_at | Drives the deletion job; audit kept minimal |
+| Subscription (FR22) | `subscription` | owner_id, plan (`free`/`plus`), status, provider nullable, provider_ref nullable, current_period_end nullable | No provider until approved; default `free` |
+| Library extras (design) | `lesson_bookmark`, `lesson_note` | bookmark: owner_id, lesson_id; note: owner_id, lesson_id, segment_id nullable, body | Same owner; notes are private content (export/delete like lessons) |
+| Search (FR23) | index only | trigram or CJK index on lesson title/tags/segment text and vocabulary surface | Choice open (DEC/FR23) |
+
+Open questions for these tables: HSK version (D09), CJK search method (FR23), conversation retention period, and whether `daily_activity` is materialised or computed per request.

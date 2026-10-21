@@ -1,3 +1,4 @@
+import { en } from "@/modules/i18n/en";
 import { isLanguageCode } from "@/modules/language/registry";
 import type { Actor } from "@/modules/identity/types";
 import { hasPermission, type Permission } from "@/server/policy/permissions";
@@ -91,7 +92,7 @@ export async function createLesson(
   const parsed = parseLessonForm(formData, ["clientRequestId"]);
   if (!parsed.ok) return { status: "invalid", errors: parsed.errors };
   const clientRequestId = parseClientRequestId(formData);
-  if (!clientRequestId) return { status: "invalid", errors: { form: "Biểu mẫu đã hết hạn, hãy tải lại trang." } };
+  if (!clientRequestId) return { status: "invalid", errors: { form: en.form.expired } };
 
   const result = await repository.create(guardOf(actor), { clientRequestId, ...parsed.value });
   return result.ok ? { status: "ok", value: { lessonId: result.value.lessonId } } : { status: "failed", reason: result.reason };
@@ -109,7 +110,7 @@ export async function updateLesson(
   const parsed = parseLessonForm(formData, ["expectedVersion"]);
   if (!parsed.ok) return { status: "invalid", errors: parsed.errors };
   const expectedVersion = parseExpectedVersion(formData);
-  if (!expectedVersion) return { status: "invalid", errors: { form: "Biểu mẫu không hợp lệ, hãy tải lại trang." } };
+  if (!expectedVersion) return { status: "invalid", errors: { form: en.form.invalid } };
 
   const result = await repository.update(guardOf(actor), { lessonId: id, expectedVersion, ...parsed.value });
   return result.ok ? { status: "ok", value: undefined } : { status: "failed", reason: result.reason };
@@ -129,7 +130,7 @@ export async function transitionLesson(
   if (!id) return { status: "failed", reason: "not_found" };
   const expectedVersion = parseExpectedVersion(formData);
   if (!hasOnlyFields(formData, ["expectedVersion"]) || !expectedVersion) {
-    return { status: "invalid", errors: { form: "Biểu mẫu không hợp lệ, hãy tải lại trang." } };
+    return { status: "invalid", errors: { form: en.form.invalid } };
   }
   const result = await repository[transition](guardOf(actor), { lessonId: id, expectedVersion });
   return result.ok ? { status: "ok", value: undefined } : { status: "failed", reason: result.reason };
@@ -150,23 +151,15 @@ export async function deleteLesson(
   if (!id) return { status: "failed", reason: "not_found" };
   const expectedVersion = parseExpectedVersion(formData);
   if (!hasOnlyFields(formData, ["expectedVersion", "confirmTitle"]) || !expectedVersion) {
-    return { status: "invalid", errors: { form: "Biểu mẫu không hợp lệ, hãy tải lại trang." } };
+    return { status: "invalid", errors: { form: en.form.invalid } };
   }
   const lesson = await repository.get(actor.userId, id);
   if (!lesson) return { status: "failed", reason: "not_found" };
   if (formData.get("confirmTitle") !== lesson.title) {
-    return { status: "invalid", errors: { form: "Tiêu đề nhập lại không khớp. Bài chưa bị xóa." } };
+    return { status: "invalid", errors: { form: en.deleteLesson.titleMismatch } };
   }
   const result = await repository.remove(guardOf(actor), { lessonId: id, expectedVersion });
   return result.ok ? { status: "ok", value: undefined } : { status: "failed", reason: result.reason };
 }
 
-export const FAILURE_MESSAGES: Record<LessonFailure, string> = {
-  not_found: "Không tìm thấy bài học.",
-  conflict: "Bài học vừa được thay đổi ở nơi khác. Hãy tải lại để xem bản mới nhất; nội dung bạn đang soạn vẫn còn trong biểu mẫu.",
-  invalid_state: "Thao tác này không áp dụng cho trạng thái hiện tại của bài.",
-  language_locked: "Không đổi được ngôn ngữ sau khi bài đã sẵn sàng. Hãy tạo bài mới cho ngôn ngữ khác.",
-  empty_content: "Bài cần ít nhất một đoạn trước khi chuyển sang sẵn sàng.",
-  has_dependents: "Bài đã có dữ liệu học liên quan nên không xóa vĩnh viễn được. Hãy lưu trữ bài.",
-  stale_authorization: "Quyền truy cập của bạn vừa thay đổi. Hãy tải lại trang.",
-};
+export const FAILURE_MESSAGES: Record<LessonFailure, string> = en.lesson.failures;

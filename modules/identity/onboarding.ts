@@ -1,3 +1,4 @@
+import { en } from "@/modules/i18n/en";
 import { z } from "zod";
 import { LANGUAGE_CODES, type LanguageCode } from "@/modules/language/registry";
 import { isSupportedTimeZone } from "@/modules/language/timezones";
@@ -27,12 +28,12 @@ function isFrameworkField(name: string): boolean {
 const onboardingSchema = z
   .object({
     languages: z
-      .array(z.enum(LANGUAGE_CODES, { error: "Ngôn ngữ không được hỗ trợ." }))
-      .min(1, { error: "Chọn ít nhất một ngôn ngữ để học." })
+      .array(z.enum(LANGUAGE_CODES, { error: en.onboarding.errors.unsupportedLanguage }))
+      .min(1, { error: en.onboarding.errors.noLanguage })
       .max(LANGUAGE_CODES.length),
     timezone: z
-      .string({ error: "Chọn múi giờ." })
-      .refine(isSupportedTimeZone, { error: "Múi giờ không hợp lệ." }),
+      .string({ error: en.onboarding.errors.noTimezone })
+      .refine(isSupportedTimeZone, { error: en.onboarding.errors.invalidTimezone }),
   })
   .strict();
 
@@ -44,7 +45,7 @@ const onboardingSchema = z
 export function parseOnboardingForm(formData: FormData): ParseOnboardingResult {
   for (const name of new Set(formData.keys())) {
     if (!ALLOWED_FIELDS.has(name) && !isFrameworkField(name)) {
-      return { ok: false, errors: { form: "Biểu mẫu chứa trường không hợp lệ." } };
+      return { ok: false, errors: { form: en.form.invalidFields } };
     }
   }
 

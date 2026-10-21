@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
+import { shellContext } from "@/server/shell";
 import { LessonForm } from "@/components/lesson-form";
+import { BackLink, PageHeader } from "@/components/ui";
 import { getLesson } from "@/modules/content/lessons";
+import { en } from "@/modules/i18n/en";
 import { listLanguages } from "@/modules/language/registry";
 import { getLessonRepository, requireLearner } from "@/server/lessons";
 import { signOut } from "../../../actions";
 import { updateLessonAction } from "../../actions";
 
-export const metadata: Metadata = { title: "Sửa bài học · Kiko" };
+export const metadata: Metadata = { title: en.app.pageTitle(en.lessonForm.editPageTitle) };
 
 export default async function EditLessonPage({ params }: PageProps<"/lessons/[id]/edit">) {
   const actor = await requireLearner();
@@ -21,12 +23,10 @@ export default async function EditLessonPage({ params }: PageProps<"/lessons/[id
 
   const everPublished = lesson.active !== null;
   return (
-    <AppShell currentPath="/library" signOutAction={signOut}>
+    <AppShell currentPath="/library" signOutAction={signOut} {...(await shellContext(actor))} topBarStart={<BackLink href={`/lessons/${lesson.id}`} label={en.lesson.backToLesson} />}>
       <div className="mx-auto flex max-w-reading flex-col gap-6">
-        <Link href={`/lessons/${lesson.id}`} className="text-supporting font-medium text-primary-strong">
-          ← Quay lại bài học
-        </Link>
-        <h1 className="text-page-title font-bold">Sửa bài học</h1>
+        <BackLink href={`/lessons/${lesson.id}`} label={en.lesson.backToLesson} inline />
+        <PageHeader title={en.lessonForm.editTitle} />
         <LessonForm
           action={updateLessonAction.bind(null, lesson.id)}
           hidden={{ expectedVersion: String(lesson.version) }}
@@ -40,12 +40,8 @@ export default async function EditLessonPage({ params }: PageProps<"/lessons/[id
           }}
           languages={listLanguages()}
           languageLocked={everPublished}
-          submitLabel={everPublished ? "Lưu bản sửa (chưa công bố)" : "Lưu bản nháp"}
-          contentHint={
-            everPublished
-              ? "Bản đang học không đổi. Nội dung sửa được lưu thành bản mới và chỉ thay thế khi bạn công bố. Mỗi dòng không trống là một đoạn."
-              : undefined
-          }
+          submitLabel={everPublished ? en.lessonForm.saveEdit : en.lessonForm.saveDraft}
+          contentHint={everPublished ? en.lessonForm.editContentHint : undefined}
         />
       </div>
     </AppShell>

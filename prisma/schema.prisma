@@ -76,19 +76,23 @@ model Role {
 /// Kiko account bound to one provider identity. Created only by
 /// kiko.admit_identity(); the web runtime can update preference columns only.
 model UserProfile {
-  id                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  authProvider          String       @map("auth_provider")
-  authSubject           String       @map("auth_subject")
+  id                      String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  authProvider            String       @map("auth_provider")
+  authSubject             String       @map("auth_subject")
   /// IANA timezone; null until onboarding.
-  timezone              String?
-  interfaceLanguage     String       @default("vi") @map("interface_language")
-  state                 AccountState @default(pending)
+  timezone                String?
+  interfaceLanguage       String       @default("en") @map("interface_language")
+  /// Name shown in the account menu; seeded once from the Google profile, display only.
+  displayName             String?      @map("display_name")
+  /// Header learning-language choice; composite FK to the user's own preference (SQL migration).
+  currentLearningLanguage String?      @map("current_learning_language")
+  state                   AccountState @default(pending)
   /// Incremented whenever state or roles change; guards in-flight writes.
-  authorizationRevision Int          @default(1) @map("authorization_revision")
-  onboardedAt           DateTime?    @map("onboarded_at") @db.Timestamptz(6)
-  version               Int          @default(1)
-  createdAt             DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt             DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  authorizationRevision   Int          @default(1) @map("authorization_revision")
+  onboardedAt             DateTime?    @map("onboarded_at") @db.Timestamptz(6)
+  version                 Int          @default(1)
+  createdAt               DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   roles                UserRole[]               @relation("UserRoleUser")
   assignedRoles        UserRole[]               @relation("UserRoleAssignedBy")
@@ -218,6 +222,7 @@ model Lesson {
   @@unique([id, ownerId, languageCode])
   @@unique([ownerId, clientRequestId])
   @@index([ownerId, status, updatedAt(sort: Desc), id])
+  @@index([tags], type: Gin)
   @@map("lesson")
   @@schema("kiko")
 }

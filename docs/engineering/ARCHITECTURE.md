@@ -420,3 +420,27 @@ No stack replacement or production change is authorized by this section. Preserv
 Guided and content-first entry are alternate orchestration prototypes; do not create parallel data silos. The review scheduler should support versioned algorithms and auditable retrieval events. AI tutoring/speech feedback remains optional behind provider adapters, explicit user controls, budgets, observability and failure fallback. Do not equate speech-recognition output with validated pronunciation scoring.
 
 For wider use, plan load/privacy tests, quota enforcement, per-actor caching, data export/deletion, accessibility and content licensing. Any schema, integration or deployment change needs separate ADR, task and tests. Research hypotheses and sources: `RESEARCH_INSIGHTS.md`.
+
+---
+
+## 21. Quiet Bloom learning features — module and route additions (2026-10-21; proposed)
+
+Requirements: PROJECT_SPEC FR14–FR23; decisions DEC-037 → DEC-043; data: DATA_MODEL “Quiet Bloom learning features”. Same modular-monolith rules as §5: domain logic in `modules/`, persistence adapters in `server/db/`, pages thin in `app/`, every use case authorizes with the server-resolved actor.
+
+| Module (`modules/…`) | Responsibility | Depends on |
+|---|---|---|
+| `learning-path` | Lesson steps, applicability, unlock rule (versioned), completion | content, vocabulary, review, media |
+| `vocabulary` | Words, readings, examples, relations, stars, tags (KIKO-009) | content |
+| `review` | Cards, queue, scheduler v1, Forgot/Hard/Remembered (KIKO-016) | vocabulary |
+| `practice` | Rule generator (deterministic, versioned), exercise snapshots, grading | vocabulary, content |
+| `speaking` | Shadowing hub, pronunciation practice, sessions, history | media, content |
+| `progress` | Study days, streak, goals, levels, achievements, daily rollups | all activity modules (read-only) |
+| `profile` | Display name, avatar, settings, deletion request | identity, media |
+| `billing` | Plan state only, no provider (FR22) | identity |
+| `search` | Owner-scoped search (FR23, method open) | content, vocabulary |
+
+**Routes (App Router):** `/my-learning`; lesson workspace under the existing `/lessons/[id]` with `/lessons/[id]/{vocabulary,reading,listening,speaking,practice,review}` sharing one layout (stepper, right rail, Previous/Next); `/speaking`; `/vocabulary`; `/flashcards`; `/progress`; `/profile`; `/settings`. Unbuilt destinations stay non-links in the navigation.
+
+**External adapters (all disabled by default, DEC-038, AGENTS §14):** `ai/conversation`, `ai/pronunciation`, `ai/exercise-generation`. Each requires a recorded decision (provider, data sent, retention, cost, quota), server-side consent check (`ai_consent`), idempotent calls keyed by owner + input + configuration version, and a working core loop when off. Dictionary, translation and TTS adapters are deferred (DEC-043); notifications are deferred (DEC-043).
+
+**Background work:** media probing, export, deletion, and (later) AI calls run as `processing_job`s (§11); practice generation and achievement awarding run synchronously inside their use-case transactions in v1.

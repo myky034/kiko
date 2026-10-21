@@ -18,7 +18,7 @@ Confirmed: name Kiko, three languages, vocabulary/reading/conversation/handwriti
 - Show missing data, unsupported features and errors honestly; no fabricated scores or proficiency.
 - Keep language selection visible; do not mix Chinese/Japanese readings or default English accent silently.
 - Learning controls remain simple; technical provider/configuration detail belongs in settings or error diagnostics when useful.
-- Do not overload MVP with dashboards, social mechanics, subscription flows or AI chat placeholders.
+- Do not overload MVP with dashboards, social mechanics, subscription flows or AI chat placeholders. *(2026-10-21: streaks, goals, levels, achievements, AI conversation/pronunciation and a subscription screen are now in scope after the core loop — PROJECT_SPEC FR14–FR23, DEC-038; placeholders stay labelled.)*
 
 ## 3. Information architecture and routes
 
@@ -50,7 +50,7 @@ Shadowing is a mode inside the lesson workspace, not a separate copy of the less
 
 Desktop: compact side navigation, top bar with Kiko, current language/filter and profile. Main content uses constrained reading width; media/writing workspace may be wider. Separate Learning and Administration navigation so Owner is not confused with personal ownership.
 
-Mobile: top language/profile controls; bottom navigation for Home, Library, Review and More. More contains Vocabulary, Writing, Progress and Settings; do not put every destination into a crowded bottom bar. Within learning, a compact persistent control bar must not obscure subtitles or touch drawing.
+*(2026-10-21: navigation now follows the Hi-fi — sidebar Home, Library, My Learning, Flashcards, Speaking, Profile, Settings; mobile Home, Library, My Learning, Profile — DEC-033.)* Mobile: top language/profile controls; bottom navigation for Home, Library, Review and More. More contains Vocabulary, Writing, Progress and Settings; do not put every destination into a crowded bottom bar. Within learning, a compact persistent control bar must not obscure subtitles or touch drawing.
 
 Language selector supports zh/ja/en; library/progress may offer All. Inside a lesson, language is a label, not a control that mutates the lesson's target language. Preserve filters when navigating back. Shared catalog and personal content have explicit labels.
 
@@ -102,6 +102,8 @@ Acceptance: keyboard usable; auth errors do not leak account existence beyond pr
 Slice 1 (2026-10-17, DEC-018): one action — *Đăng nhập bằng Google*. After Google returns, an unapproved or suspended account lands on `/access-denied`; only known error codes are shown on `/sign-in` (cancelled, failed, configuration). Onboarding (`/onboarding`) asks for learning languages and timezone only (DEC-003).
 
 ### UI02 — Home
+
+> 2026-10-21: layout follows the Hi-fi with labelled placeholders where data does not exist yet (DEC-033); no fake streaks or scores still applies. Real streaks/goals arrive with FR18 (DEC-038).
 
 Current language, continue learning, due cards, recent activity and quick create. Empty state: create first lesson/add words. Owner-only sees admin landing rather than failing Learner queries. Do not show fake streaks, time studied or achievement scores. Counts label unique words vs practice attempts.
 

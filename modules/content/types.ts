@@ -10,6 +10,8 @@ export type LessonSummary = {
   status: LessonStatus;
   tags: string[];
   updatedAt: Date;
+  /** Optional self-assigned level label (DEC-023), shown as "Japanese • N5". */
+  levelLabel?: string | null;
 };
 
 export type SegmentView = { position: number; text: string };

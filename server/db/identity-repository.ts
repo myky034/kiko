@@ -27,7 +27,32 @@ export function createPrismaIdentityRepository(client: () => PrismaClient): Iden
           authorizationRevision: true,
           timezone: true,
           onboardedAt: true,
+          displayName: true,
+          currentLearningLanguage: true,
         },
+      });
+    },
+
+    async seedDisplayName(userId, displayName) {
+      await client().userProfile.updateMany({
+        where: { id: userId, state: "active", displayName: null },
+        data: { displayName },
+      });
+    },
+
+    async saveLearningLanguage(input) {
+      return client().$transaction(async (tx) => {
+        const preference = await tx.userLanguagePreference.findUnique({
+          where: { userId_languageCode: { userId: input.userId, languageCode: input.languageCode } },
+          select: { enabled: true },
+        });
+        if (!preference?.enabled) return "not_enabled";
+        // Guarded like onboarding: only while still active at the observed revision.
+        const updated = await tx.userProfile.updateMany({
+          where: { id: input.userId, state: "active", authorizationRevision: input.expectedRevision },
+          data: { currentLearningLanguage: input.languageCode },
+        });
+        return updated.count === 1 ? "saved" : "stale_authorization";
       });
     },
 

@@ -61,11 +61,19 @@ export async function resolveAccess({
 
   const roles = (await repository.listRoleCodes(profile.id)).filter(isRoleCode);
 
+  // One-time seed of the stored display name from the verified provider profile
+  // (DEC-037), like admission a first-request write; later edits are never overwritten.
+  if (!profile.displayName && identity.displayName) {
+    await repository.seedDisplayName(profile.id, identity.displayName);
+  }
+
   return {
     status: "active",
     actor: {
       userId: profile.id,
       email: identity.email,
+      displayName: profile.displayName ?? identity.displayName ?? null,
+      learningLanguage: profile.currentLearningLanguage ?? null,
       roles,
       permissions: permissionsForRoles(roles),
       authorizationRevision: profile.authorizationRevision,

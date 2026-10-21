@@ -176,6 +176,31 @@ describe("Prisma identity repository as kiko_app", () => {
     expect(await repository.listLanguagePreferences(userId)).toEqual([]);
   });
 
+  it("saves the learning language only for an enabled preference at the observed revision", async () => {
+    const a = synthetic("learning-language");
+    await allow(a.email, ["LEARNER"]);
+    const userId = (await repository.admitIdentity("supabase", a.subject, a.email))!;
+    await repository.saveOnboarding({ userId, expectedRevision: 1, timezone: "UTC", languages: ["zh", "ja"] });
+    await repository.saveOnboarding({ userId, expectedRevision: 1, timezone: "UTC", languages: ["zh"] });
+
+    expect(await repository.saveLearningLanguage({ userId, expectedRevision: 1, languageCode: "en" })).toBe("not_enabled");
+    expect(await repository.saveLearningLanguage({ userId, expectedRevision: 1, languageCode: "ja" })).toBe("not_enabled");
+    expect(await repository.saveLearningLanguage({ userId, expectedRevision: 2, languageCode: "zh" })).toBe(
+      "stale_authorization",
+    );
+    expect(await repository.saveLearningLanguage({ userId, expectedRevision: 1, languageCode: "zh" })).toBe("saved");
+    expect((await repository.findProfileBySubject("supabase", a.subject))?.currentLearningLanguage).toBe("zh");
+  });
+
+  it("seeds the display name once and never overwrites it", async () => {
+    const a = synthetic("display-name");
+    await allow(a.email, ["LEARNER"]);
+    const userId = (await repository.admitIdentity("supabase", a.subject, a.email))!;
+    await repository.seedDisplayName(userId, "First Name");
+    await repository.seedDisplayName(userId, "Second Name");
+    expect((await repository.findProfileBySubject("supabase", a.subject))?.displayName).toBe("First Name");
+  });
+
   it("records standalone audit events without needing read access", async () => {
     const a = synthetic("audit");
     await allow(a.email, ["LEARNER"]);
