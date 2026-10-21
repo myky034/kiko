@@ -1,5 +1,7 @@
 # Kiko UI Design System — Soft Learning System v1.0
 
+> **Superseded for visuals on 2026-10-21** by `DESIGN.md` (“Quiet Bloom”, DEC-026). Kept for history; do not use its tokens for new UI.
+
 > Status: Proposed · Source of truth: Kiko's **first light/pastel hi-fi mockup** · Updated: 2026-10-16  
 > Applies to: marketing site, learner web app, responsive mobile app.  
 > Does **not** adopt the later dark/visionOS glassmorphism concepts.

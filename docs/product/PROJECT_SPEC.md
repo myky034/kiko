@@ -9,7 +9,7 @@
 ## 1. Trạng thái và cách sử dụng tài liệu
 
 - **Đã xác nhận:** tên Kiko; phục vụ cá nhân; hỗ trợ Trung–Nhật–Anh; có từ vựng, đọc, hội thoại, rèn chữ và shadowing; Corodomo là tham khảo cho học qua video và shadowing.
-- **Đề xuất:** web responsive trước; giao diện tiếng Việt; stack Next.js/TypeScript/PostgreSQL; phạm vi MVP, quy tắc ôn và tiêu chí kỹ thuật dưới đây.
+- **Đề xuất:** web responsive trước; giao diện tiếng Việt *(đã thay: giao diện tiếng Anh, DEC-029 — 21/10/2026)*; stack Next.js/TypeScript/PostgreSQL; phạm vi MVP, quy tắc ôn và tiêu chí kỹ thuật dưới đây.
 - **Chưa chốt:** thiết bị chính, hosting, phương thức đăng nhập, dữ liệu nét chữ/từ điển, giản thể/phồn thể, biến thể giọng Anh, ngân sách, offline và nhà cung cấp AI.
 
 Các yêu cầu đánh dấu MVP là đường cơ sở đề xuất, không phải các quyết định đã được chủ dự án phê duyệt riêng. Tài liệu mô tả sản phẩm dự kiến, không tuyên bố chức năng đã được xây hoặc kiểm thử. Repo GitHub chưa được xác nhận tạo thành công trong cuộc trò chuyện.

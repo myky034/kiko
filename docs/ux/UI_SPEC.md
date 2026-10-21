@@ -9,7 +9,7 @@
 
 Read with PROJECT_SPEC.md, ARCHITECTURE.md, ACCESS_CONTROL.md, DATA_MODEL.md and IMPLEMENTATION_PLAN.md. Owner and Learner are separate roles; the personal account has both. UI permission checks improve navigation, while server/database/storage enforce access.
 
-Confirmed: name Kiko, three languages, vocabulary/reading/conversation/handwriting/shadowing. Proposed: Vietnamese UI, responsive web, visual tokens and layouts below. Colors, logo, component library and supported-device matrix are not selected. No design preference from another project is automatically imported into Kiko.
+Confirmed: name Kiko, three languages, vocabulary/reading/conversation/handwriting/shadowing. Proposed: Vietnamese UI *(superseded 2026-10-21: English UI, DEC-029; visual design “Quiet Bloom”, DEC-026)*, responsive web, visual tokens and layouts below. Colors, logo, component library and supported-device matrix are not selected. No design preference from another project is automatically imported into Kiko.
 
 ## 2. Experience principles
 
