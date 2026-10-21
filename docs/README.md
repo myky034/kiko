@@ -34,7 +34,8 @@ Trạng thái của từng nội dung (Proposed / Accepted / Deferred) được 
 | [INFORMATION_ARCHITECTURE.md](ux/INFORMATION_ARCHITECTURE.md) | Kiến trúc thông tin và cấu trúc điều hướng |
 | [USER_FLOWS.md](ux/USER_FLOWS.md) | Luồng người dùng chính và các nhánh ngoại lệ |
 | [UI_SPEC.md](ux/UI_SPEC.md) | Đặc tả màn hình, tương tác và trạng thái responsive |
-| [DESIGN_SYSTEM.md](ux/DESIGN_SYSTEM.md) | Design system "Soft Learning System": token, component |
+| [DESIGN.md](ux/DESIGN.md) | Đặc tả UI “Quiet Bloom”: token, component, màn hình, trạng thái (đang áp dụng, DEC-026) |
+| [DESIGN_SYSTEM.md](ux/DESIGN_SYSTEM.md) | Design system "Soft Learning System" — đã được thay bởi DESIGN.md, giữ để tham khảo |
 
 ## `engineering/` — Kỹ thuật
 
