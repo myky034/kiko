@@ -123,7 +123,7 @@ Hiện câu gốc, bản dịch tùy chọn; hiện/ẩn cách đọc nếu có;
 
 ### FR05 — Từ vựng và bộ từ [MVP]
 
-Tạo/sửa từ, nghĩa tiếng Việt, cách đọc, ví dụ, ghi chú; thêm vào nhiều bộ từ cùng ngôn ngữ. Lưu nguồn từ một hoặc nhiều câu. Nhập nghĩa thủ công là đường cơ bản khi từ điển chưa tích hợp.
+Tạo/sửa từ, nghĩa tiếng Việt *(nghĩa là nội dung do người học nhập, viết bằng ngôn ngữ nào cũng được; chữ giao diện là tiếng Anh — DEC-039)*, cách đọc, ví dụ, ghi chú; thêm vào nhiều bộ từ cùng ngôn ngữ. Lưu nguồn từ một hoặc nhiều câu. Nhập nghĩa thủ công là đường cơ bản khi từ điển chưa tích hợp.
 
 **Chấp nhận:** từ cùng hình thức ở hai ngôn ngữ tồn tại độc lập; cảnh báo khả năng trùng trong cùng ngôn ngữ nhưng không tự gộp khác nghĩa. Một từ có nhiều cách đọc; loại phiên âm phù hợp ngôn ngữ. Xóa liên kết khỏi bộ từ không xóa từ và lịch sử ôn.
 
@@ -131,7 +131,7 @@ Tạo/sửa từ, nghĩa tiếng Việt, cách đọc, ví dụ, ghi chú; thêm
 
 Chọn câu, chuyển câu, phát lặp, đổi tốc độ trong tập giá trị thiết bị hỗ trợ. Hai chế độ: nghe rồi nhắc lại; nói đuổi theo khi phát mẫu. Bản thu gắn câu và snapshot phiên bản tại lúc luyện.
 
-**Chấp nhận:** quyền micro chỉ hỏi khi người dùng bắt đầu thu; từ chối quyền có hướng dẫn và vẫn nghe được. Chỉ cho một bản thu đang chạy; đổi bài khi đang thu phải dừng hoặc hủy có chủ đích. Có nghe lại, thu lại, lưu, xóa. Nghe đối chiếu phát luân phiên mẫu/bản thu; không bắt buộc đồng bộ sóng âm. Gợi ý tai nghe để giảm thu lẫn loa. Không hiển thị điểm phát âm giả.
+**Chấp nhận:** quyền micro chỉ hỏi khi người dùng bắt đầu thu; từ chối quyền có hướng dẫn và vẫn nghe được. Chỉ cho một bản thu đang chạy; đổi bài khi đang thu phải dừng hoặc hủy có chủ đích. Có nghe lại, thu lại, lưu, xóa. Nghe đối chiếu phát luân phiên mẫu/bản thu; không bắt buộc đồng bộ sóng âm. Gợi ý tai nghe để giảm thu lẫn loa. Không hiển thị điểm phát âm giả. *(21/10/2026: điểm phát âm thật từ nhà cung cấp được phép qua FR17 — DEC-038; vẫn không có điểm giả.)*
 
 ### FR07 — Lưu bản thu [MVP]
 
@@ -157,7 +157,7 @@ MVP dùng thẻ từ: xem nghĩa nhớ từ hoặc xem từ nhớ nghĩa. Mỗi 
 
 Hiển thị buổi học, số lượt ôn, mục đang đến hạn, bài gần đây và lượt luyện theo ngôn ngữ. Phân biệt số mục duy nhất với số lượt. Hoàn thành bài là hành động người dùng; đã mở không tự thành đã hoàn thành.
 
-**Chấp nhận:** không đếm thời gian chỉ vì tab còn mở; nếu đo thời gian thì chỉ tích lũy khi player/thu âm hoặc tương tác đang hoạt động, quy tắc timeout phải công bố. Không hiển thị điểm trình độ tổng hợp giữa ba ngôn ngữ. Có thể bỏ thống kê phút khỏi MVP nếu chưa đo đáng tin.
+**Chấp nhận:** không đếm thời gian chỉ vì tab còn mở; nếu đo thời gian thì chỉ tích lũy khi player/thu âm hoặc tương tác đang hoạt động, quy tắc timeout phải công bố. Không hiển thị điểm trình độ tổng hợp giữa ba ngôn ngữ. Có thể bỏ thống kê phút khỏi MVP nếu chưa đo đáng tin. *(21/10/2026: streak, mục tiêu, cấp độ và thành tích được bổ sung ở FR18–FR20, chỉ tính từ hoạt động thật — DEC-038.)*
 
 ### FR11 — Xuất và khôi phục [MVP]
 
@@ -173,7 +173,73 @@ Xuất gói ZIP gồm manifest, JSON có schema_version, từ/bộ từ, bài/ph
 
 ### FR13 — Chức năng mở rộng [không chặn MVP]
 
-Chép chính tả, viết câu, AI hội thoại, nhận dạng audio, tạo quiz, tóm tắt, kiểm tra nét và đánh giá phát âm. Mỗi chức năng có đặc tả/tiêu chí riêng trước triển khai. Không dùng độ khớp transcript làm bằng chứng phát âm chuẩn. AI tắt mặc định; người dùng bật theo tác vụ, biết nội dung gửi ra ngoài và hạn mức.
+Chép chính tả, viết câu, AI hội thoại, nhận dạng audio, tạo quiz, tóm tắt, kiểm tra nét và đánh giá phát âm. Mỗi chức năng có đặc tả/tiêu chí riêng trước triển khai. Không dùng độ khớp transcript làm bằng chứng phát âm chuẩn. AI tắt mặc định; người dùng bật theo tác vụ, biết nội dung gửi ra ngoài và hạn mức. *(21/10/2026: tạo quiz → FR15, hội thoại AI → FR16, đánh giá phát âm → FR17 — DEC-038, DEC-040.)*
+
+### FR14 — My Learning và bước học tuần tự [sau vòng học lõi — DEC-041, DEC-042]
+
+**My Learning** liệt kê bài của người học theo ngôn ngữ đang chọn: đang học, đã xong, học tiếp; mở **Lesson workspace**. Workspace có các bước theo thứ tự cố định: Vocabulary → Reading → Listening → Speaking → Practice → Review. Bước chỉ có khi bài có dữ liệu cho bước đó (Listening cần media có thời gian; Practice cần đủ từ vựng theo FR15; Review cần thẻ ôn); bước không áp dụng được **bỏ qua**, không khóa.
+
+**Quy tắc v1:** bước đầu tiên áp dụng được luôn mở; bước sau mở khi bước trước đã hoàn thành **bằng hành động của người học** (nút hoàn thành hoặc làm xong bài tập/ôn của bước). Bài hoàn thành khi mọi bước áp dụng được đã xong. Bài đã xong luôn mở lại được và không mất trạng thái. Lưu `rule_version` cùng trạng thái. Đổi bản nội dung (publish bản mới) không xóa tiến độ cũ; bước có nội dung thay đổi hiển thị “updated”.
+
+**Chấp nhận:** mở bài không tự thành hoàn thành; không thể gọi API hoàn thành bước đang khóa; trạng thái chỉ đọc/ghi của chính người học (hai learner test); thanh “n / m” và % chỉ tính trên bước áp dụng được; bỏ qua bước không có dữ liệu được test.
+
+### FR15 — Practice tự sinh [sau KIKO-009 — DEC-040]
+
+Bài tập sinh từ **từ vựng của chính người học** gắn với bài (occurrence trong bản nội dung đang học) và câu trong bài, bằng bộ sinh theo luật có phiên bản (`generator_version`), xác định (cùng đầu vào + seed → cùng bộ câu hỏi).
+
+**Loại v1:** Multiple choice (nghĩa → từ, từ → nghĩa); Fill in the blank (che từ trong câu nguồn theo offset đã lưu); Sentence building (xếp lại câu: en theo từ, zh/ja theo các cụm người học đã lưu và ký tự còn lại; chỉ dùng câu ≤ 12 đơn vị); Listening (chỉ khi câu có audio và thời gian). Loại nào thiếu dữ liệu thì không sinh.
+
+**Quy tắc:** đáp án nhiễu chỉ lấy từ từ vựng của cùng người học, cùng ngôn ngữ, khác nghĩa; ưu tiên cùng bài rồi cùng bộ từ. Cần **tối thiểu 4 từ** khác nghĩa để mở Practice; ít hơn thì hiện thông báo và cách thêm từ. Mỗi lần sinh tạo một **bộ bài tập snapshot** (đề, lựa chọn, đáp án, giải thích lấy từ nghĩa/ghi chú/ví dụ của từ tại thời điểm sinh); sửa từ sau đó không đổi bộ cũ và lượt làm cũ. Kết quả chỉ là đúng/sai; không suy ra trình độ. Câu trả lời gửi bằng `client_event_id` để retry không tính hai lần; sau khi chấm thì khóa câu.
+
+**AI (sau, tùy chọn):** adapter tắt mặc định (DEC-038); đầu ra là bản nháp không tin cậy, kiểm schema, gắn nhãn “AI-generated”, người học sửa/bỏ được; không gửi dữ liệu riêng khi chưa có đồng ý.
+
+**Chấp nhận:** cùng seed sinh cùng bộ; không bao giờ dùng từ của người khác hoặc ngôn ngữ khác; dưới ngưỡng không sinh; sửa/xóa từ không làm hỏng lượt làm cũ; retry không trùng.
+
+### FR16 — Speaking hub [sau KIKO-013 — DEC-042]
+
+Vào từ sidebar hoặc từ bước Speaking của bài. **Shadowing** dùng FR06–FR07; **Pronunciation practice** luyện từ/câu đã lưu; **Speaking history** liệt kê các lượt thu và nhận xét trước đó; **AI Conversation** hội thoại theo tình huống (giới thiệu bản thân, du lịch, mua sắm…).
+
+**Chấp nhận:** phần không AI hoạt động khi AI tắt; AI Conversation chỉ bật khi adapter đã cấu hình và người học đồng ý theo tác vụ; transcript/audio hội thoại chỉ lưu khi có đồng ý, có thời hạn giữ và xóa được; gửi ra ngoài tối thiểu dữ liệu cần thiết.
+
+### FR17 — Đánh giá phát âm [sau FR16 — DEC-038]
+
+Điểm phát âm chỉ đến từ nhà cung cấp đã duyệt qua adapter; hiển thị kèm nguồn và phiên bản mô hình, gọi là “estimate”, không phải chứng nhận. Không có nhà cung cấp → không hiện điểm.
+
+**Chấp nhận:** không bao giờ hiển thị số giả hoặc ước lượng từ độ khớp transcript; lỗi nhà cung cấp hiển thị rõ, bản thu vẫn lưu; retry không gọi trả phí hai lần cho cùng bản thu và cấu hình.
+
+### FR18 — Streak và mục tiêu học [sau KIKO-017 — DEC-038]
+
+**Ngày học** = ngày theo múi giờ của người học có ít nhất một hoạt động thật: hoàn thành bước bài, lượt ôn, lượt Practice, bản thu đã lưu, lượt luyện chữ. **Streak** = số ngày học liên tiếp kết thúc hôm nay (hoặc hôm qua nếu hôm nay chưa học). v1 không có “đóng băng streak”. **Mục tiêu tuần** do người học đặt: số ngày học/tuần, số lượt ôn/tuần; mục tiêu phút chỉ khi đã có quy tắc đo thời gian hoạt động (FR10). Onboarding có thể hỏi mục tiêu ở slice này (thay đổi DEC-003).
+
+**Chấp nhận:** đổi múi giờ không làm mất hoặc nhân đôi ngày; không đếm mở tab; test ranh giới nửa đêm theo múi giờ; dữ liệu chỉ của chính người học.
+
+### FR19 — Cấp độ và lộ trình [sau FR18 — DEC-038]
+
+Mỗi ngôn ngữ có **cấp độ người học tự khai báo** (CEFR A1–C2 cho en, JLPT N5–N1 cho ja, HSK cho zh — phiên bản HSK còn mở, D09) và tùy chọn **mục tiêu số từ** (ví dụ 98 / 300 từ). Lộ trình N5 → N1 hiển thị vị trí theo cấp khai báo; khi có catalog (DEC-020) mới có lộ trình bài theo cấp.
+
+**Chấp nhận:** không suy ra hay “chứng nhận” trình độ từ số đếm; người học đổi cấp được; thanh tiến độ cấp = số từ thật / mục tiêu tự đặt.
+
+### FR20 — Thành tích [sau FR18 — DEC-038]
+
+Thành tích theo luật có phiên bản từ sự kiện thật (ví dụ hoàn thành bài đầu tiên, streak 7 ngày, lưu 100 từ). Trao một lần, idempotent.
+
+**Chấp nhận:** không trao từ dữ liệu giả hoặc thao tác client; chạy lại không trao trùng; đổi luật không thu hồi thành tích cũ mà không có quyết định.
+
+### FR21 — Hồ sơ và cài đặt học [DEC-037]
+
+Hồ sơ: tên hiển thị (lấy từ Google lần đầu, sửa được), ảnh đại diện (lưu Storage riêng tư), giới thiệu ngắn, role, ngôn ngữ đang học với cấp độ. Cài đặt học: mục tiêu mỗi ngày, giờ học ưa thích, chế độ học, tự lật thẻ/đọc khi ôn, ngôn ngữ giao diện (khi có bộ chuyển ngôn ngữ). Account & Security chỉ hiển thị (đăng nhập Google). Data & Privacy: tải dữ liệu (FR11), yêu cầu xóa tài khoản có xác nhận.
+
+**Chấp nhận:** không sửa role/state/quyền qua form hồ sơ (allowlist); ảnh kiểm MIME/kích thước thật; xóa tài khoản thu hồi truy cập và dọn file có retry, giữ audit tối thiểu.
+
+### FR22 — Gói dịch vụ (subscription) [UI + dữ liệu — DEC-038]
+
+Màn hình Free/Plus và bảng trạng thái gói. Không tích hợp cổng thanh toán, không bật dịch vụ trả phí khi chưa có phê duyệt riêng; mọi người dùng là Free; vòng học lõi không bị khóa sau paywall.
+
+### FR23 — Tìm kiếm [cần quyết định]
+
+Tìm bài theo tiêu đề/chủ đề/nội dung và từ vựng của chính người học. Tìm tiếng Trung/Nhật cần tách từ hoặc trigram — chọn cách (pg_trgm, extension CJK, hoặc dịch vụ ngoài) trước khi làm. Ô tìm hiện là placeholder bị khóa.
+
+**Ngoài phạm vi hiện tại (DEC-043):** thông báo (email/push), từ điển, dịch máy, đọc to (TTS) từ dịch vụ ngoài.
 
 ## 8. Luồng và trạng thái
 
@@ -359,7 +425,7 @@ Không cam kết lịch tuần trước khi biết thời gian phát triển và
 | D06 | Nét chữ và từ điển | Kiểm tra giấy phép/độ phủ trước P3; nghĩa thủ công là fallback |
 | D07 | Ngân sách/hosting | Chốt giới hạn file và tổng dung lượng sau P0 |
 | D08 | Offline | Chỉ giữ draft cục bộ ở MVP; chưa có đồng bộ hoàn chỉnh |
-| D09 | HSK/JLPT/CEFR | Chỉ nhãn tùy chọn, chưa có giáo trình/đánh giá chuẩn hóa |
+| D09 | HSK/JLPT/CEFR | Chỉ nhãn tùy chọn, chưa có giáo trình/đánh giá chuẩn hóa *(21/10/2026: thêm cấp độ do người học khai báo và lộ trình theo cấp — FR19, DEC-038; vẫn không suy ra trình độ. Còn mở: HSK 2.0 (1–6) hay HSK 3.0 (1–9).)* |
 | D10 | Phong cách UI/logo | Tên Kiko đã chốt, visual identity chưa chốt |
 
 ## 18. Thuật ngữ và nguồn tham khảo
@@ -383,6 +449,7 @@ Tham khảo sản phẩm: https://corodomo.com/ ; https://skritter.com/features/
 | 1.2 Draft | 17/10/2026 | D02 và §9 cập nhật theo quyết định auth đã chốt (DECISIONS.md) |
 | 1.3 Draft | 17/10/2026 | D02: Google OAuth thay OTP email (DEC-018) |
 | 1.4 Draft | 17/10/2026 | FR02: ánh xạ chủ đề/mức độ/ghi chú nguồn (DEC-023); catalog hoãn (DEC-020) |
+| 1.5 Draft | 21/10/2026 | FR14–FR23 theo thiết kế Quiet Bloom và quyết định của chủ dự án (DEC-037 → DEC-043); ghi chú FR05, FR06, FR10, FR13, D09 |
 
 ---
 

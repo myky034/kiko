@@ -25,14 +25,14 @@ describe("SegmentList", () => {
 
   it("shows an empty state without fake content", () => {
     render(<SegmentList languageCode="en" segments={[]} />);
-    expect(screen.getByText("Bài chưa có đoạn nào.")).toBeDefined();
+    expect(screen.getByText("This lesson has no lines yet.")).toBeDefined();
   });
 });
 
 describe("LessonStatusBadge", () => {
   it("states the status in text, not only color", () => {
     render(<LessonStatusBadge status="archived" />);
-    expect(screen.getByText("Đã lưu trữ")).toBeDefined();
+    expect(screen.getByText("Archived")).toBeDefined();
   });
 });
 
@@ -45,23 +45,23 @@ describe("LessonForm counters", () => {
         languages={listLanguages()}
         hidden={{ clientRequestId: "x" }}
         languageLocked={false}
-        submitLabel="Lưu"
+        submitLabel="Save"
       />,
     );
-    return screen.getByLabelText("Nội dung");
+    return screen.getByLabelText("Content");
   }
 
   it("counts segments and code points like the server, emoji = 1, line break = 1", () => {
     const textarea = renderForm();
     fireEvent.change(textarea, { target: { value: "😀\n\n　\nabc" } });
-    expect(screen.getByText(/2 đoạn · 8 \/ 100\.000 ký tự/)).toBeDefined();
+    expect(screen.getByText(/2 segments · 8 \/ 100,000 characters/)).toBeDefined();
   });
 
   it("warns live with the line number when a segment is too long, without truncating", () => {
     const textarea = renderForm() as HTMLTextAreaElement;
     const long = "😀".repeat(2001);
     fireEvent.change(textarea, { target: { value: `ok\n${long}` } });
-    expect(screen.getByText("Dòng 2: đoạn dài 2.001 ký tự, vượt giới hạn 2.000.")).toBeDefined();
+    expect(screen.getByText("Line 2: the segment is 2,001 characters, over the 2,000 limit.")).toBeDefined();
     expect(textarea.value).toBe(`ok\n${long}`);
     expect(textarea.getAttribute("maxlength")).toBeNull();
   });
@@ -74,11 +74,11 @@ describe("LessonForm counters", () => {
         languages={listLanguages()}
         hidden={{ expectedVersion: "2" }}
         languageLocked
-        submitLabel="Lưu"
+        submitLabel="Save"
       />,
     );
     const hidden = container.querySelector('input[type="hidden"][name="languageCode"]') as HTMLInputElement;
     expect(hidden.value).toBe("zh");
-    expect((screen.getByLabelText("Ngôn ngữ") as HTMLSelectElement).disabled).toBe(true);
+    expect((screen.getByLabelText("Language") as HTMLSelectElement).disabled).toBe(true);
   });
 });

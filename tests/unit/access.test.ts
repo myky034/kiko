@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { resolveAccess } from "@/modules/identity/access";
+import { accountSummary, displayNameOf } from "@/modules/identity/display";
 import {
   FakeIdentityProvider,
   InMemoryIdentityStore,
@@ -116,5 +117,55 @@ describe("resolveAccess", () => {
     const result = await access(new FakeIdentityProvider(identity("s-x", "x@example.test")));
     if (result.status !== "active") throw new Error("expected active");
     expect(result.actor.roles).toEqual(["LEARNER"]);
+  });
+});
+
+describe("display name (account menu)", () => {
+  it("takes the Google full name, cleaned and length-limited", () => {
+    expect(displayNameOf({ full_name: "  Vũ   Mỹ Kỳ \u0007", name: "ignored" })).toBe("Vũ Mỹ Kỳ");
+    expect(displayNameOf({ name: "Kiko Learner" })).toBe("Kiko Learner");
+    expect(displayNameOf({ full_name: "x".repeat(80) })).toBe(`${"x".repeat(60)}…`);
+  });
+
+  it("returns null for missing or non-string metadata", () => {
+    expect(displayNameOf(undefined)).toBeNull();
+    expect(displayNameOf({ full_name: 42 })).toBeNull();
+    expect(displayNameOf({ full_name: "   " })).toBeNull();
+  });
+
+  it("falls back to the role label and the email initial", () => {
+    const base = { userId: "u", roles: ["LEARNER"] as const, permissions: new Set<never>(), authorizationRevision: 1, timezone: null, onboardedAt: null };
+    expect(accountSummary({ ...base, email: "vumyky@example.com", displayName: "Vũ Mỹ Kỳ" })).toEqual({ initial: "V", name: "Vũ Mỹ Kỳ", roleLabel: "Learner" });
+    expect(accountSummary({ ...base, email: "kiko@example.com", displayName: null })).toEqual({ initial: "K", name: "Learner", roleLabel: "Learner" });
+  });
+});
+
+describe("stored profile preferences (DEC-037)", () => {
+  async function admitted(name: string | null) {
+    store.allowEmail("p@example.test", ["LEARNER"]);
+    const provider = new FakeIdentityProvider({ ...identity("s-p", "p@example.test"), displayName: name });
+    return { provider, result: await access(provider) };
+  }
+
+  it("seeds the display name once from the provider profile", async () => {
+    const { result } = await admitted("Vũ Mỹ Kỳ");
+    expect(result.status === "active" && result.actor.displayName).toBe("Vũ Mỹ Kỳ");
+    expect(store.profileBySubject("s-p")?.displayName).toBe("Vũ Mỹ Kỳ");
+  });
+
+  it("never overwrites a stored display name with a later provider name", async () => {
+    const { provider } = await admitted("First Name");
+    store.profileBySubject("s-p")!.displayName = "Edited Name";
+    provider.identity = { ...provider.identity!, displayName: "Google Changed" };
+    const again = await access(provider);
+    expect(again.status === "active" && again.actor.displayName).toBe("Edited Name");
+    expect(store.profileBySubject("s-p")?.displayName).toBe("Edited Name");
+  });
+
+  it("carries the stored learning language on the actor", async () => {
+    const { provider } = await admitted(null);
+    store.profileBySubject("s-p")!.currentLearningLanguage = "ja";
+    const again = await access(provider);
+    expect(again.status === "active" && again.actor.learningLanguage).toBe("ja");
   });
 });

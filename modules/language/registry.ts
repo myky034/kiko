@@ -1,3 +1,5 @@
+import { en } from "@/modules/i18n/en";
+
 /**
  * Supported target-language registry (zh, ja, en).
  *
@@ -15,8 +17,8 @@ export type ReadingNotation = "pinyin" | "kana" | "ipa";
 
 export type LanguageDefinition = {
   code: LanguageCode;
-  /** Vietnamese UI label (Vietnamese UI is a proposal, not yet approved). */
-  labelVi: string;
+  /** UI label from the string catalogue (English UI, DEC-029). */
+  label: string;
   /** Endonym rendered in the language's own script. */
   nativeName: string;
   htmlLang: string;
@@ -28,7 +30,7 @@ export type LanguageDefinition = {
 export const LANGUAGES: Readonly<Record<LanguageCode, LanguageDefinition>> = {
   zh: {
     code: "zh",
-    labelVi: "Tiếng Trung",
+    label: en.languages.zh,
     nativeName: "中文",
     htmlLang: "zh",
     readingNotations: ["pinyin"],
@@ -36,7 +38,7 @@ export const LANGUAGES: Readonly<Record<LanguageCode, LanguageDefinition>> = {
   },
   ja: {
     code: "ja",
-    labelVi: "Tiếng Nhật",
+    label: en.languages.ja,
     nativeName: "日本語",
     htmlLang: "ja",
     readingNotations: ["kana"],
@@ -44,7 +46,7 @@ export const LANGUAGES: Readonly<Record<LanguageCode, LanguageDefinition>> = {
   },
   en: {
     code: "en",
-    labelVi: "Tiếng Anh",
+    label: en.languages.en,
     nativeName: "English",
     htmlLang: "en",
     readingNotations: ["ipa"],

@@ -1,7 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
-import { Alert, FieldError, buttonClass, inputClass } from "@/components/ui";
+import { Check } from "lucide-react";
+import { Alert, FieldError, buttonClass, helpClass, inputClass, labelClass } from "@/components/ui";
+import { LanguageName } from "@/components/lesson-parts";
+import { en } from "@/modules/i18n/en";
 import type { LanguageDefinition } from "@/modules/language/registry";
 import { submitOnboarding, type OnboardingFormState } from "./actions";
 
@@ -23,7 +26,7 @@ export function OnboardingForm({
   return (
     <form action={action} className="flex flex-col gap-6" noValidate>
       {state.errors.form ? (
-        <Alert tone="error" title="Không lưu được" role="alert">
+        <Alert tone="error" title={en.onboarding.saveFailed} role="alert">
           {state.errors.form}
         </Alert>
       ) : null}
@@ -32,25 +35,30 @@ export function OnboardingForm({
         className="flex flex-col gap-3"
         aria-describedby={state.errors.languages ? "languages-error" : "languages-help"}
       >
-        <legend className="font-semibold">Ngôn ngữ bạn muốn học</legend>
-        <p id="languages-help" className="text-supporting text-muted-foreground">
-          Chọn một hoặc nhiều ngôn ngữ. Bạn có thể đổi lại sau.
+        <legend className={labelClass}>{en.onboarding.languagesLegend}</legend>
+        <p id="languages-help" className={helpClass}>
+          {en.onboarding.languagesHelp}
         </p>
         {languages.map((language) => (
           <label
             key={language.code}
-            className="flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border border-border-strong px-4 has-checked:border-primary-strong has-checked:bg-primary-soft"
+            className="group flex min-h-12 cursor-pointer items-center gap-3 rounded-md border border-control px-4 transition-colors has-checked:border-accent has-checked:bg-grad-active has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent"
           >
             <input
               type="checkbox"
               name="languages"
               value={language.code}
               defaultChecked={selected.has(language.code)}
-              className="size-5 accent-primary-strong"
+              className="peer sr-only"
             />
-            <span className="font-medium">{language.labelVi}</span>
-            <span lang={language.htmlLang} className="text-muted-foreground">
-              {language.nativeName}
+            <span
+              aria-hidden="true"
+              className="flex size-5 shrink-0 items-center justify-center rounded-[5px] border border-control bg-surface text-transparent peer-checked:border-transparent peer-checked:bg-grad-cta peer-checked:text-white"
+            >
+              <Check size={14} strokeWidth={3} />
+            </span>
+            <span className="font-semibold text-ink group-has-checked:text-accent-strong">
+              <LanguageName language={language} nativeClassName="font-normal text-copy" />
             </span>
           </label>
         ))}
@@ -58,8 +66,8 @@ export function OnboardingForm({
       </fieldset>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="timezone" className="font-semibold">
-          Múi giờ
+        <label htmlFor="timezone" className={labelClass}>
+          {en.onboarding.timezoneLabel}
         </label>
         <select
           id="timezone"
@@ -75,14 +83,14 @@ export function OnboardingForm({
             </option>
           ))}
         </select>
-        <p id="timezone-help" className="text-supporting text-muted-foreground">
-          Dùng để chia ngày học và lịch ôn tập theo giờ địa phương của bạn.
+        <p id="timezone-help" className={helpClass}>
+          {en.onboarding.timezoneHelp}
         </p>
         <FieldError id="timezone-error" message={state.errors.timezone} />
       </div>
 
       <button type="submit" className={buttonClass.primary} disabled={pending}>
-        {pending ? "Đang lưu…" : "Lưu và tiếp tục"}
+        {pending ? en.form.saving : en.onboarding.submit}
       </button>
     </form>
   );

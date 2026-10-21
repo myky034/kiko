@@ -11,7 +11,7 @@
 
 Đây là kế hoạch đề xuất, chưa phải lịch cam kết. Không gán ngày hoặc số giờ giả khi chưa biết năng lực triển khai và thời gian thực tế. Bắt đầu bằng kiểm chứng kỹ thuật, sau đó xây một luồng học xuyên suốt; không giao AI xây toàn bộ Kiko trong một prompt.
 
-MVP: đăng nhập, ba ngôn ngữ, bài văn bản/media, phụ đề, lưu từ, shadowing/thu âm, luyện chữ zh/ja, ôn từ, tiến độ, xuất/khôi phục. AI chấm điểm, hội thoại AI, chép chính tả tự động, offline đầy đủ và app native chưa chặn MVP.
+MVP: đăng nhập, ba ngôn ngữ, bài văn bản/media, phụ đề, lưu từ, shadowing/thu âm, luyện chữ zh/ja, ôn từ, tiến độ, xuất/khôi phục. AI chấm điểm, hội thoại AI, chép chính tả tự động, offline đầy đủ và app native chưa chặn MVP. *(21/10/2026: các tính năng trong thiết kế Quiet Bloom — My Learning/bước tuần tự, Practice tự sinh, Speaking hub, AI hội thoại/đánh giá phát âm, streak/mục tiêu, cấp độ, thành tích, hồ sơ/cài đặt, gói dịch vụ — vào phạm vi ở §P4b, xếp sau vòng học lõi; DEC-038.)*
 
 ## 2. Quy tắc thực hiện
 
@@ -151,6 +151,8 @@ Spike Done nghĩa có kết luận và evidence, không có nghĩa production-re
 
 ### KIKO-009 — Vocabulary, pronunciation, deck và occurrence
 
+> **Bổ sung 21/10/2026:** thêm đánh dấu sao, tag, cách dùng, câu ví dụ (có audio tùy chọn), từ liên quan theo DATA_MODEL “Quiet Bloom”; trạng thái Learning/Weak/Mastered tính từ review (KIKO-016) theo luật có phiên bản; nhãn UI tiếng Anh (DEC-039). Là đầu vào của Practice (KIKO-029).
+
 **Phụ thuộc:** 008. **FR:** FR04–05.
 
 **Công việc:** chọn cụm từ thủ công; lưu nguyên văn/offset convention/snapshot; nghĩa/cách đọc thủ công; nhiều notation phù hợp; deck membership; cảnh báo trùng thay vì auto merge. Có thao tác xem/sửa/archive, unlink khỏi deck không xóa từ.
@@ -189,6 +191,8 @@ Spike Done nghĩa có kết luận và evidence, không có nghĩa production-re
 
 ### KIKO-013 — Player và recorder hoàn chỉnh
 
+> **Bổ sung 21/10/2026:** recorder/attempt dùng lại cho Speaking hub (KIKO-031) và đánh giá phát âm (KIKO-034).
+
 **Phụ thuộc:** 002, 011–012. **FR:** FR06–07.
 
 **Công việc:** chọn/chuyển/lặp câu, tốc độ đã hỗ trợ; nghe-nhắc và nói đuổi; recorder lifecycle, local buffer, upload/retry, listen/delete/history. Gắn snapshot câu/time/source vào attempt.
@@ -215,6 +219,8 @@ Spike Done nghĩa có kết luận và evidence, không có nghĩa production-re
 
 ### KIKO-016 — Review engine và queue
 
+> **Bổ sung 21/10/2026:** 3 mức Forgot/Hard/Remembered (giá trị `forgotten/hard/remembered`, DEC-039); chế độ Weak items / Mixed / Quiz trong màn hình Review của thiết kế; tùy chọn tự lật và đọc từ lưu ở `user_settings` (KIKO-038).
+
 **Phụ thuộc:** 009, chốt lịch v1. **FR:** FR09.
 
 **Công việc:** card directions, explicit add-to-review, due queue, reveal/rating, event idempotency, card optimistic version, atomic schedule/history, algorithm_version. Quy tắc interval theo spec chỉ dùng sau review; không tự thay bằng algorithm khác.
@@ -223,11 +229,137 @@ Spike Done nghĩa có kết luận và evidence, không có nghĩa production-re
 
 ### KIKO-017 — Progress và learn-again navigation
 
+> **Bổ sung 21/10/2026:** cung cấp ngày học (theo múi giờ) cho streak/mục tiêu (KIKO-035) và dữ liệu cho màn hình Progress của thiết kế.
+
 **Phụ thuộc:** 013, 015–016. **FR:** FR10.
 
 **Công việc:** hoạt động gần đây, unique items vs attempts, due count, filter language, câu khó và học tiếp. Không tự coi mở bài là hoàn thành. Chỉ hiển thị học phút nếu đo active time rõ và được test; nếu chưa đáng tin thì bỏ metric đó.
 
 **Gate P4:** Luồng nội dung → từ → shadowing → luyện chữ zh/ja → ôn hoạt động; en không bị ép vào module nét; progress tách ngôn ngữ và không tự nhận là điểm trình độ.
+
+## 9b. P4b — Tính năng theo thiết kế Quiet Bloom (21/10/2026)
+
+Theo PROJECT_SPEC FR14–FR23 và DEC-037 → DEC-043. **Đã xác nhận (21/10/2026):** các slice này làm **sau vòng học lõi** (bài → từ vựng → practice → ôn), không chặn Gate P4. Mỗi slice tự có migration riêng, chỉ áp lên Supabase sau khi được duyệt.
+
+### KIKO-026 — Áp migration profile_preferences lên Supabase dev
+
+**Phụ thuộc:** DEC-037. **Trạng thái (21/10/2026):** đã duyệt và áp lên Supabase dev; checksum khớp, cột/ràng buộc/index/grant đã kiểm tra chỉ đọc. Còn chờ chủ dự án xác nhận trên trình duyệt (tên hiển thị, ngôn ngữ giữ khi đổi trình duyệt).
+
+**Nghiệm thu:** migration `20261021000000_profile_preferences` (sha256 bắt đầu `66c54c77da7169ab`) có trong `_prisma_migrations` của Supabase dev với checksum khớp; trang Home/Library chạy lại; tên hiển thị được lưu lần đầu; chọn ngôn ngữ trong header được giữ khi đổi trình duyệt.
+
+### KIKO-027 — Lesson workspace và bước tuần tự
+
+**Phụ thuộc:** 008, 009 (bước Vocabulary). **FR:** FR14. **Dữ liệu:** `lesson_step_progress`, `lesson.description/cover_asset_id/estimated_minutes`.
+
+**Công việc:** layout workspace chung (course header, stepper Lesson Content, right rail Lesson Progress/Tools, Previous/Next); tính bước áp dụng được; luật mở khóa v1 có `rule_version`; hành động hoàn thành bước; thanh “n / m”.
+
+**Nghiệm thu:** bước khóa không hoàn thành được qua API; bước không có dữ liệu bị bỏ qua; mở bài không tự hoàn thành; bài đã xong mở lại được; hai learner không thấy tiến độ của nhau; test luật mở khóa ở ranh giới.
+
+### KIKO-028 — Trang My Learning
+
+**Phụ thuộc:** 027. **FR:** FR14, DEC-042.
+
+**Công việc:** danh sách bài đang học/đã xong theo ngôn ngữ ở header; học tiếp; nối “Continue learning” ở Home/Library với tiến độ thật (thay “Not tracked yet”).
+
+**Nghiệm thu:** % chỉ tính trên bước áp dụng được; empty/loading/error states; keyboard/responsive.
+
+### KIKO-029 — Practice tự sinh v1 (luật)
+
+**Phụ thuộc:** 009, 027. **FR:** FR15, DEC-040. **Dữ liệu:** `exercise_set`, `exercise`, `exercise_attempt`.
+
+**Công việc:** bộ sinh xác định có `generator_version` + seed: Multiple choice, Fill in the blank, Sentence building (câu ≤ 12 đơn vị), Listening (khi có audio có thời gian); đáp án nhiễu chỉ từ từ vựng cùng người học/ngôn ngữ; ngưỡng tối thiểu 4 từ; snapshot đề/đáp án/giải thích; chấm đúng/sai, khóa câu sau khi chấm; Practice Progress và Question Navigator; phản hồi tiếng Anh.
+
+**Nghiệm thu:** cùng seed → cùng bộ; không lẫn dữ liệu người khác/ngôn ngữ khác; dưới ngưỡng không sinh; sửa/xóa từ không đổi lượt cũ; retry `client_event_id` không trùng; JSONB kiểm schema.
+
+### KIKO-030 — Quyết định adapter AI và đồng ý (ADR)
+
+**Phụ thuộc:** không. **FR:** FR15 (AI), FR16, FR17; DEC-038; AGENTS §14.
+
+**Công việc:** ADR chọn nhà cung cấp cho hội thoại, đánh giá phát âm, sinh bài tập: ngôn ngữ hỗ trợ, dữ liệu gửi đi, thời hạn giữ, chi phí/hạn mức, cách đồng ý; bảng `ai_consent`; cờ cấu hình tắt mặc định.
+
+**Nghiệm thu:** chưa có ADR được duyệt thì không có SDK/gọi trả phí nào; khi tắt, vòng học lõi chạy đủ; test “disabled mode”.
+
+### KIKO-031 — Speaking hub (không AI)
+
+**Phụ thuộc:** 013. **FR:** FR16, DEC-042. **Dữ liệu:** `speaking_session`.
+
+**Công việc:** trang `/speaking`: Shadowing độc lập theo câu đã lưu/bài, Pronunciation practice (nghe mẫu – thu – nghe lại), Speaking history; bước Speaking trong workspace dùng cùng thành phần.
+
+**Nghiệm thu:** như FR06–FR07 (micro chỉ hỏi khi bấm thu, local vs saved, dọn tài nguyên); lịch sử chỉ của người học.
+
+### KIKO-032 — AI Conversation
+
+**Phụ thuộc:** 030, 031. **FR:** FR16. **Dữ liệu:** `conversation_turn`.
+
+**Công việc:** hội thoại theo tình huống qua adapter; lưu transcript/audio chỉ khi đồng ý, có hạn giữ và xóa; giới hạn lượt/chi phí.
+
+**Nghiệm thu:** tắt adapter → mục ẩn/khóa có giải thích; đầu ra AI không được thực thi hay tin là đúng; không gửi dữ liệu khi chưa đồng ý; lỗi nhà cung cấp hiển thị rõ.
+
+### KIKO-033 — Sinh Practice bằng AI (tùy chọn)
+
+**Phụ thuộc:** 029, 030. **FR:** FR15.
+
+**Công việc:** adapter tạo bản nháp bài tập; kiểm schema; gắn nhãn “AI-generated”; người học duyệt/sửa/bỏ trước khi dùng.
+
+**Nghiệm thu:** bản nháp không tự vào bộ chính; output sai schema bị loại; retry không gọi trả phí trùng.
+
+### KIKO-034 — Đánh giá phát âm
+
+**Phụ thuộc:** 013, 030. **FR:** FR17. **Dữ liệu:** `pronunciation_assessment`.
+
+**Công việc:** gọi adapter cho bản thu đã lưu; hiển thị điểm “estimate” kèm nguồn/phiên bản; phần “What you did well / Tips” chỉ từ kết quả thật.
+
+**Nghiệm thu:** không có nhà cung cấp → không có điểm; không suy từ transcript; một lần gọi cho mỗi bản thu + cấu hình.
+
+### KIKO-035 — Streak và mục tiêu học
+
+**Phụ thuộc:** 017. **FR:** FR18. **Dữ liệu:** `learning_goal`, `daily_activity`.
+
+**Công việc:** ngày học theo múi giờ; streak; mục tiêu tuần (ngày học, lượt ôn); hiển thị trên Home/Progress (thay placeholder); tùy chọn hỏi mục tiêu ở onboarding (sửa DEC-003).
+
+**Nghiệm thu:** test nửa đêm/đổi múi giờ; không đếm mở tab; không có hoạt động → streak 0, không số giả.
+
+### KIKO-036 — Cấp độ và lộ trình
+
+**Phụ thuộc:** 035; chốt phiên bản HSK (D09). **FR:** FR19.
+
+**Công việc:** cấp độ tự khai báo và mục tiêu số từ theo ngôn ngữ; lộ trình N5→N1 / HSK / CEFR hiển thị vị trí; Current level card trên Progress.
+
+**Nghiệm thu:** không suy trình độ; framework đúng ngôn ngữ; đổi cấp được.
+
+### KIKO-037 — Thành tích
+
+**Phụ thuộc:** 035. **FR:** FR20. **Dữ liệu:** `user_achievement`.
+
+**Công việc:** định nghĩa thành tích có phiên bản trong code; trao idempotent từ sự kiện thật; Recent Achievements trên Progress.
+
+**Nghiệm thu:** chạy lại không trao trùng; không trao từ request client.
+
+### KIKO-038 — Hồ sơ và cài đặt học
+
+**Phụ thuộc:** 011 (avatar), 026. **FR:** FR21. **Dữ liệu:** `user_settings`, `avatar_asset_id`, `bio`, `account_deletion_request`.
+
+**Công việc:** trang Profile/Settings: sửa tên hiển thị, ảnh, giới thiệu, cấp độ ngôn ngữ, cài đặt học; Data & Privacy (tải dữ liệu → KIKO-018, yêu cầu xóa tài khoản).
+
+**Nghiệm thu:** allowlist trường; không sửa role/state; ảnh kiểm thật; xóa tài khoản có xác nhận, thu hồi truy cập, dọn file có retry.
+
+### KIKO-039 — Gói dịch vụ (UI + dữ liệu)
+
+**Phụ thuộc:** 038. **FR:** FR22. **Dữ liệu:** `subscription`.
+
+**Công việc:** màn hình Free/Plus, trạng thái gói mặc định Free.
+
+**Nghiệm thu:** không có cổng thanh toán hay gọi dịch vụ trả phí; vòng học lõi không bị khóa.
+
+### KIKO-040 — Tìm kiếm
+
+**Phụ thuộc:** 009; quyết định cách tìm CJK. **FR:** FR23.
+
+**Công việc:** chọn phương án (pg_trgm / extension CJK / dịch vụ ngoài); tìm bài và từ của chính người học; bật ô search ở header/Library.
+
+**Nghiệm thu:** chỉ kết quả của người học; tiếng Trung/Nhật không cần khoảng trắng; giới hạn độ dài truy vấn và rate limit.
+
+**Hoãn (DEC-043):** thông báo email/push; từ điển, dịch máy, đọc to từ dịch vụ ngoài.
 
 ## 10. P5 — Dữ liệu, vận hành và hardening
 

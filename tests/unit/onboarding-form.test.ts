@@ -62,7 +62,7 @@ describe("parseOnboardingForm", () => {
         [field, "OWNER"],
       ]),
     );
-    expect(result).toEqual({ ok: false, errors: { form: "Biểu mẫu chứa trường không hợp lệ." } });
+    expect(result).toEqual({ ok: false, errors: { form: "The form contains fields that aren't allowed." } });
   });
 
   it.each([["ko"], ["ZH"], ["zh-Hans"], [""], ["fr"]])("rejects unsupported language %j", (code) => {
@@ -78,7 +78,7 @@ describe("parseOnboardingForm", () => {
 
   it("requires at least one language", () => {
     const result = parseOnboardingForm(form([["timezone", "UTC"]]));
-    expect(!result.ok && result.errors.languages).toBe("Chọn ít nhất một ngôn ngữ để học.");
+    expect(!result.ok && result.errors.languages).toBe("Choose at least one language to learn.");
   });
 
   it.each([["Mars/Olympus"], ["+07:00"], ["asia/ho_chi_minh"], [""]])(

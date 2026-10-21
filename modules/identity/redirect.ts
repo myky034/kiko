@@ -1,3 +1,5 @@
+import { en } from "@/modules/i18n/en";
+
 /**
  * Post-sign-in redirect targets (DEC-018). Only exact, known internal paths are
  * accepted; anything else (absolute URLs, protocol-relative `//host`, backslash
@@ -25,11 +27,7 @@ export function appUrl(origin: string, path: string): URL {
 }
 
 /** Sign-in error codes the sign-in page may display; anything else is ignored. */
-export const SIGN_IN_ERRORS = {
-  oauth_cancelled: "Bạn đã hủy đăng nhập Google.",
-  oauth_failed: "Không đăng nhập được bằng Google. Vui lòng thử lại.",
-  config: "Kiko chưa được cấu hình đăng nhập. Hãy kiểm tra cấu hình máy chủ.",
-} as const;
+export const SIGN_IN_ERRORS = en.signIn.errors;
 
 export type SignInErrorCode = keyof typeof SIGN_IN_ERRORS;
 

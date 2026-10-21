@@ -8,6 +8,7 @@ import {
   type IdentityProvider,
   type VerifiedIdentity,
 } from "@/modules/identity/types";
+import { displayNameOf } from "@/modules/identity/display";
 import { normalizeEmail } from "@/modules/identity/email";
 import { hasVerifiedGoogleEmail } from "@/modules/identity/provider-identity";
 
@@ -53,7 +54,7 @@ export function createSupabaseIdentityProvider(supabase: SupabaseClient): Identi
       // trusted for authorization on the server.
       const { data, error } = await supabase.auth.getClaims();
       if (error || !data) return null;
-      const { sub, email, is_anonymous: isAnonymous, amr } = data.claims;
+      const { sub, email, is_anonymous: isAnonymous, amr, user_metadata: metadata } = data.claims;
       if (typeof sub !== "string" || sub.length === 0) return null;
       return {
         provider: AUTH_PROVIDER,
@@ -61,6 +62,7 @@ export function createSupabaseIdentityProvider(supabase: SupabaseClient): Identi
         email: typeof email === "string" && email.length > 0 ? normalizeEmail(email) : null,
         isAnonymous: isAnonymous === true,
         authMethods: authMethodsOf(amr),
+        displayName: displayNameOf(metadata),
       };
     },
 

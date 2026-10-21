@@ -5,6 +5,7 @@ import type {
   IdentityProvider,
   IdentityRepository,
   ProfileRecord,
+  SaveLearningLanguageInput,
   SaveOnboardingInput,
   VerifiedIdentity,
 } from "@/modules/identity/types";
@@ -52,8 +53,16 @@ export class InMemoryIdentityStore implements IdentityRepository {
   async findProfileBySubject(_provider: string, subject: string) {
     const profile = this.profileBySubject(subject);
     if (!profile) return null;
-    const { id, state, authorizationRevision, timezone, onboardedAt } = profile;
-    return { id, state, authorizationRevision, timezone, onboardedAt };
+    const { id, state, authorizationRevision, timezone, onboardedAt, displayName, currentLearningLanguage } = profile;
+    return {
+      id,
+      state,
+      authorizationRevision,
+      timezone,
+      onboardedAt,
+      displayName: displayName ?? null,
+      currentLearningLanguage: currentLearningLanguage ?? null,
+    };
   }
 
   async admitIdentity(_provider: string, subject: string, email: string) {
@@ -109,6 +118,21 @@ export class InMemoryIdentityStore implements IdentityRepository {
       else if (prefs.has(code)) prefs.set(code, false);
     }
     this.preferences.set(input.userId, prefs);
+    return "saved" as const;
+  }
+
+  async seedDisplayName(userId: string, displayName: string) {
+    const profile = this.profiles.get(userId);
+    if (profile && profile.state === "active" && !profile.displayName) profile.displayName = displayName;
+  }
+
+  async saveLearningLanguage(input: SaveLearningLanguageInput) {
+    if (!this.preferences.get(input.userId)?.get(input.languageCode)) return "not_enabled" as const;
+    const profile = this.profiles.get(input.userId);
+    if (!profile || profile.state !== "active" || profile.authorizationRevision !== input.expectedRevision) {
+      return "stale_authorization" as const;
+    }
+    profile.currentLearningLanguage = input.languageCode;
     return "saved" as const;
   }
 

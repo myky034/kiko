@@ -126,7 +126,7 @@ export function createPrismaLessonRepository(client: () => PrismaClient): Lesson
         },
         orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
         take: filter.limit + 1,
-        select: { id: true, title: true, languageCode: true, status: true, tags: true, updatedAt: true },
+        select: { id: true, title: true, languageCode: true, status: true, tags: true, updatedAt: true, levelLabel: true },
       });
       const page = rows.slice(0, filter.limit);
       const items: LessonSummary[] = page.map((row) => ({ ...row, languageCode: asLanguage(row.languageCode) }));

@@ -47,22 +47,22 @@ describe("parseLessonForm", () => {
 
   it("rejects line breaks in single-line fields instead of removing them", () => {
     const result = parseLessonForm(form({ ...base, title: "a\nb" }), []);
-    expect(!result.ok && result.errors.title).toMatch(/xuống dòng/);
+    expect(!result.ok && result.errors.title).toMatch(/line breaks/);
   });
 
   it("reports content over the limits with line numbers and without truncation", () => {
     const result = parseLessonForm(form({ ...base, content: `ok\n${"x".repeat(2001)}` }), []);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.errors.content).toMatch(/Không có gì bị cắt bớt/);
-    expect(result.errors.contentLines).toEqual(["Dòng 2: đoạn dài 2.001 ký tự, vượt giới hạn 2.000."]);
+    expect(result.errors.content).toMatch(/Nothing was cut/);
+    expect(result.errors.contentLines).toEqual(["Line 2: the segment is 2,001 characters, over the 2,000 limit."]);
   });
 
   it.each(["ownerId", "owner_id", "status", "version", "activeTranscriptId", "userId"])(
     "rejects the unexpected field %s",
     (field) => {
       const result = parseLessonForm(form({ ...base, [field]: "x" }), ["clientRequestId"]);
-      expect(result).toEqual({ ok: false, errors: { form: "Biểu mẫu chứa trường không hợp lệ." } });
+      expect(result).toEqual({ ok: false, errors: { form: "The form contains fields that aren't allowed." } });
     },
   );
 

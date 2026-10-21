@@ -1,3 +1,4 @@
+import { en } from "@/modules/i18n/en";
 import { z } from "zod";
 import { LANGUAGE_CODES, type LanguageCode } from "@/modules/language/registry";
 import { codePointLength, contentLength, segmentSource, CONTENT_LIMITS, type SegmentationIssue } from "./segmentation";
@@ -22,12 +23,9 @@ export type LessonField =
   | "form";
 
 export type LessonFormErrors = Partial<Record<LessonField, string>> & {
-  /** Per-line content problems, e.g. "Dòng 12: …". */
+  /** Per-line content problems, e.g. "Line 12: …". */
   contentLines?: string[];
 };
-
-const numberVi = new Intl.NumberFormat("vi-VN");
-const n = (value: number) => numberVi.format(value);
 
 const LINE_BREAK = /[\r\n]/;
 /** Tag separators: ASCII comma, fullwidth comma, ideographic comma. */
@@ -46,11 +44,11 @@ function single(formData: FormData, name: string): string | null {
 export function describeSegmentationIssue(issue: SegmentationIssue): string {
   switch (issue.kind) {
     case "source_too_long":
-      return `Nội dung dài ${n(issue.length)} ký tự, vượt giới hạn ${n(issue.limit)} (mỗi lần xuống dòng tính 1).`;
+      return en.lessonForm.errors.sourceTooLong(issue.length, issue.limit);
     case "too_many_segments":
-      return `Có ${n(issue.count)} đoạn, vượt giới hạn ${n(issue.limit)} đoạn.`;
+      return en.lessonForm.errors.tooManySegments(issue.count, issue.limit);
     case "segment_too_long":
-      return `Dòng ${n(issue.line)}: đoạn dài ${n(issue.length)} ký tự, vượt giới hạn ${n(issue.limit)}.`;
+      return en.lessonForm.errors.segmentTooLong(issue.line, issue.length, issue.limit);
   }
 }
 
@@ -59,10 +57,10 @@ const singleLine = (label: string, max: number, optional: boolean) =>
   z
     .string()
     .transform((value) => value.trim())
-    .refine((value) => !LINE_BREAK.test(value), { error: `${label} không được xuống dòng.` })
-    .refine((value) => optional || value.length > 0, { error: `Nhập ${label.toLowerCase()}.` })
+    .refine((value) => !LINE_BREAK.test(value), { error: en.lessonForm.errors.noLineBreaks(label) })
+    .refine((value) => optional || value.length > 0, { error: en.lessonForm.errors.required(label) })
     .refine((value) => codePointLength(value) <= max, {
-      error: `${label} tối đa ${n(max)} ký tự.`,
+      error: en.lessonForm.errors.tooLong(label, max),
     });
 
 function parseTags(raw: string): { ok: true; tags: string[] } | { ok: false; error: string } {
@@ -70,14 +68,14 @@ function parseTags(raw: string): { ok: true; tags: string[] } | { ok: false; err
   for (const piece of raw.split(TAG_SEPARATOR)) {
     const tag = piece.trim();
     if (tag.length === 0) continue;
-    if (LINE_BREAK.test(tag)) return { ok: false, error: "Chủ đề không được xuống dòng." };
+    if (LINE_BREAK.test(tag)) return { ok: false, error: en.lessonForm.errors.topicLineBreak };
     if (codePointLength(tag) > METADATA_LIMITS.tag) {
-      return { ok: false, error: `Mỗi chủ đề tối đa ${n(METADATA_LIMITS.tag)} ký tự.` };
+      return { ok: false, error: en.lessonForm.errors.topicTooLong(METADATA_LIMITS.tag) };
     }
     if (!tags.includes(tag)) tags.push(tag);
   }
   if (tags.length > METADATA_LIMITS.tags) {
-    return { ok: false, error: `Tối đa ${n(METADATA_LIMITS.tags)} chủ đề.` };
+    return { ok: false, error: en.lessonForm.errors.tooManyTopics(METADATA_LIMITS.tags) };
   }
   return { ok: true, tags };
 }
@@ -103,39 +101,41 @@ export function parseLessonForm(
   const allowed = new Set<string>([...METADATA_FIELDS, ...extraFields]);
   for (const name of new Set(formData.keys())) {
     if (!allowed.has(name) && !isFrameworkField(name)) {
-      return { ok: false, errors: { form: "Biểu mẫu chứa trường không hợp lệ." } };
+      return { ok: false, errors: { form: en.form.invalidFields } };
     }
   }
 
   const errors: LessonFormErrors = {};
 
-  const title = singleLine("Tiêu đề", METADATA_LIMITS.title, false).safeParse(single(formData, "title"));
-  if (!title.success) errors.title = title.error.issues[0]?.message ?? "Tiêu đề không hợp lệ.";
+  const title = singleLine(en.lessonForm.title, METADATA_LIMITS.title, false).safeParse(single(formData, "title"));
+  if (!title.success) errors.title = title.error.issues[0]?.message ?? en.lessonForm.errors.invalidTitle;
 
   const language = z.enum(LANGUAGE_CODES).safeParse(single(formData, "languageCode"));
-  if (!language.success) errors.languageCode = "Chọn ngôn ngữ của bài.";
+  if (!language.success) errors.languageCode = en.lessonForm.errors.noLanguage;
 
   const tags = parseTags(single(formData, "tags") ?? "");
   if (!tags.ok) errors.tags = tags.error;
 
-  const level = singleLine("Mức độ", METADATA_LIMITS.levelLabel, true).safeParse(single(formData, "levelLabel") ?? "");
+  const level = singleLine(en.lessonForm.level, METADATA_LIMITS.levelLabel, true).safeParse(single(formData, "levelLabel") ?? "");
   if (!level.success) errors.levelLabel = level.error.issues[0]?.message;
 
   const sourceNoteRaw = (single(formData, "sourceNote") ?? "").trim();
   if (contentLength(sourceNoteRaw) > METADATA_LIMITS.sourceNote) {
-    errors.sourceNote = `Ghi chú nguồn tối đa ${n(METADATA_LIMITS.sourceNote)} ký tự.`;
+    errors.sourceNote = en.lessonForm.errors.sourceNoteTooLong(METADATA_LIMITS.sourceNote);
   }
 
   const sourceText = single(formData, "content");
   let content: LessonContent | null = null;
   if (sourceText === null) {
-    errors.content = "Thiếu nội dung.";
+    errors.content = en.lessonForm.errors.missingContent;
   } else {
     const segmentation = segmentSource(sourceText);
     if (segmentation.issues.length > 0) {
-      errors.content = `Nội dung vượt giới hạn (tối đa ${n(CONTENT_LIMITS.sourceText)} ký tự, ${n(
+      errors.content = en.lessonForm.errors.contentOverLimit(
+        CONTENT_LIMITS.sourceText,
         CONTENT_LIMITS.segmentsPerVersion,
-      )} đoạn, ${n(CONTENT_LIMITS.segment)} ký tự mỗi đoạn). Không có gì bị cắt bớt.`;
+        CONTENT_LIMITS.segment,
+      );
       errors.contentLines = segmentation.issues.map(describeSegmentationIssue);
     } else {
       content = { sourceText, segments: segmentation.segments };

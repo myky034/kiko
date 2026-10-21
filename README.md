@@ -41,7 +41,8 @@ No pronunciation/handwriting scores, AI conversations, unrestricted URL import, 
 | [docs/engineering/DATA_MODEL.md](docs/engineering/DATA_MODEL.md) | Entities, relations, constraints and retention |
 | [docs/engineering/IMPLEMENTATION_PLAN.md](docs/engineering/IMPLEMENTATION_PLAN.md) | Ordered slices/tasks and completion gates |
 | [docs/engineering/TEST_PLAN.md](docs/engineering/TEST_PLAN.md) | Tests, environments, release gates and evidence |
-| [docs/ux/DESIGN_SYSTEM.md](docs/ux/DESIGN_SYSTEM.md) | Proposed visual design system (tokens, components) |
+| [docs/ux/DESIGN.md](docs/ux/DESIGN.md) | “Quiet Bloom” UI spec: tokens, components, screens, states (in use, DEC-026) |
+| [docs/ux/DESIGN_SYSTEM.md](docs/ux/DESIGN_SYSTEM.md) | Earlier “Soft Learning System” design system — superseded for visuals by DESIGN.md, kept for history |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | Accepted, derived and open decisions |
 | [.env.example](.env.example) | Configuration contract with placeholders |
 
@@ -119,7 +120,7 @@ proxy.ts             Session refresh only; authorization lives in the server DAL
 tests/               unit/, db/ (PGlite), integration/ (local PostgreSQL), component tests, support/
 ```
 
-Design tokens (color, typography, spacing, radius, elevation, layout) are defined once in `app/globals.css` with Tailwind's `@theme`, following `docs/ux/DESIGN_SYSTEM.md` plus AA-compliant `*-strong` variants (DEC-009), e.g. `bg-primary-strong`, `text-muted-foreground`, `rounded-2xl`, `shadow-card`, `max-w-content`. Fonts are system stacks with per-language fallbacks selected through `lang` attributes (`zh`, `ja`, `zh-Latn-pinyin`, `en-fonipa`), so no font is downloaded at build time.
+Design tokens (color, typography, spacing, radius, elevation, gradients, layout) are defined once in `app/globals.css` with Tailwind's `@theme`, following `docs/ux/DESIGN.md` (“Quiet Bloom”, DEC-026) with the AA variants in DEC-031/DEC-032, e.g. `bg-grad-cta`, `text-accent-strong`, `text-copy`, `border-control`, `shadow-card`, `max-w-content`. Fonts are loaded with `next/font/google` and self-hosted at build time (DEC-027), so `npm run build` needs network access: Plus Jakarta Sans (UI), Inter (`num` utility for numbers), Noto Sans JP/SC (not preloaded; CJK glyphs load per `unicode-range`), selected through `lang` attributes (`zh`, `ja`, `zh-Latn-pinyin`, `en-fonipa`). Icons come from `lucide-react` (DEC-028). UI strings are English and live in `modules/i18n/en.ts` (DEC-029).
 
 `next.config.ts` sets `agentRules: false`: Next.js 16.4 `next dev` otherwise appends its own block to this repository's `AGENTS.md`.
 

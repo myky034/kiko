@@ -14,6 +14,8 @@ export type VerifiedIdentity = {
   isAnonymous: boolean;
   /** Authentication methods of this session (JWT `amr`), e.g. ["oauth"]. */
   authMethods: readonly string[];
+  /** Display name from the provider profile (Google full name). Display only, never for authorization. */
+  displayName?: string | null;
 };
 
 /** Authentication provider port (implemented by server/auth). */
@@ -33,7 +35,20 @@ export type ProfileRecord = {
   authorizationRevision: number;
   timezone: string | null;
   onboardedAt: Date | null;
+  /** Stored display name (DEC-037); null until seeded from the provider profile. */
+  displayName?: string | null;
+  /** Stored learning-language choice (DEC-037); always one of the user's preference rows. */
+  currentLearningLanguage?: string | null;
 };
+
+export type SaveLearningLanguageInput = {
+  userId: string;
+  /** Revision observed when access was resolved; the write fails if it changed. */
+  expectedRevision: number;
+  languageCode: LanguageCode;
+};
+
+export type SaveLearningLanguageResult = "saved" | "stale_authorization" | "not_enabled";
 
 export type LanguagePreferenceRecord = {
   languageCode: string;
@@ -71,12 +86,20 @@ export interface IdentityRepository {
   listLanguagePreferences(userId: string): Promise<LanguagePreferenceRecord[]>;
   /** Atomic: guarded on active state + unchanged authorization revision. */
   saveOnboarding(input: SaveOnboardingInput): Promise<SaveOnboardingResult>;
+  /** One-time, idempotent: sets display_name only while it is still NULL. */
+  seedDisplayName(userId: string, displayName: string): Promise<void>;
+  /** Guarded like onboarding; the language must be one of the user's enabled preferences. */
+  saveLearningLanguage(input: SaveLearningLanguageInput): Promise<SaveLearningLanguageResult>;
   recordAudit(event: AuditRecord): Promise<void>;
 }
 
 export type Actor = {
   userId: string;
   email: string | null;
+  /** Display only (stored name, else the provider profile name). */
+  displayName?: string | null;
+  /** Stored learning-language choice; validated against enabled languages before use. */
+  learningLanguage?: string | null;
   roles: readonly RoleCode[];
   permissions: ReadonlySet<Permission>;
   authorizationRevision: number;
