@@ -3,12 +3,14 @@ import {
   Bell,
   BookOpen,
   ChevronDown,
+  Copy,
   GraduationCap,
   House,
   Layers,
   LibraryBig,
   LogOut,
   Mic,
+  Search,
   Settings,
   Sprout,
   User,
@@ -43,7 +45,8 @@ export const LEARNING_NAV: readonly NavItem[] = [
   { label: nav.home, href: "/", icon: House, available: true },
   { label: nav.library, href: "/library", icon: BookOpen, available: true },
   { label: nav.myLearning, href: "/my-learning", icon: GraduationCap, available: false },
-  { label: nav.flashcards, href: "/flashcards", icon: Layers, available: false },
+  { label: nav.vocabulary, href: "/vocabulary", icon: Layers, available: true },
+  { label: nav.flashcards, href: "/flashcards", icon: Copy, available: false },
   { label: nav.speaking, href: "/speaking", icon: Mic, available: false },
   { label: nav.profile, href: "/profile", icon: User, available: false },
   { label: nav.settings, href: "/settings", icon: Settings, available: false },
@@ -80,6 +83,22 @@ function NavEntry({ item, current }: { item: NavItem; current: boolean }) {
       <Icon aria-hidden="true" size={22} strokeWidth={current ? 1.9 : 1.8} className={current ? "" : "text-muted"} />
       <span>{item.label}</span>
     </Link>
+  );
+}
+
+/** Header search: no backend yet (FR23), so it is drawn disabled and labelled on every page. */
+function HeaderSearch() {
+  return (
+    <label className="flex h-[38px] max-w-[488px] items-center gap-3 rounded-[12px] border border-line bg-surface px-3">
+      <Search aria-hidden="true" size={18} strokeWidth={2} className="text-muted" />
+      <span className="sr-only">{en.home.searchLabel}</span>
+      <input
+        type="search"
+        disabled
+        placeholder={en.home.searchPlaceholder}
+        className="num min-w-0 flex-1 bg-transparent text-[13px] text-ink placeholder:text-muted disabled:cursor-default"
+      />
+    </label>
   );
 }
 
@@ -158,7 +177,6 @@ export function AppShell({
   currentPath,
   signOutAction,
   account = { initial: "K", name: en.shell.roles.LEARNER, roleLabel: en.shell.roles.LEARNER },
-  topBarStart,
   learning,
 }: {
   children: ReactNode;
@@ -166,8 +184,6 @@ export function AppShell({
   /** Server Action that ends the session; rendered as a POST form. */
   signOutAction?: () => Promise<void>;
   account?: AccountSummary;
-  /** Optional left side of the desktop top bar (Home puts its search field here). */
-  topBarStart?: ReactNode;
   /** Learning-language switcher next to the bell (learners only). */
   learning?: ShellLearning;
 }) {
@@ -224,9 +240,11 @@ export function AppShell({
           </div>
         </header>
 
-        {/* Desktop top bar: 65px, page slot left (back link / search), bell and account right. */}
+        {/* Desktop top bar, the same on every page (DEC-045): search left; language, bell and account right. */}
         <div className="hidden h-[65px] shrink-0 items-center justify-between gap-4 px-[14px] md:flex">
-          <div className="min-w-0 flex-1">{topBarStart}</div>
+          <div className="min-w-0 flex-1">
+            <HeaderSearch />
+          </div>
           <div className="flex items-center gap-3 pr-1">
             {switcher}
             <NotificationsBell />

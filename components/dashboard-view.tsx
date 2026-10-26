@@ -9,7 +9,6 @@ import {
   Headphones,
   Mic,
   Plus,
-  Search,
   ShieldCheck,
 } from "lucide-react";
 import Link from "next/link";
@@ -35,22 +34,6 @@ export type HomeLessons = {
 /** Card surface as drawn: white, 1px line, 2px ink drop at 3.5 %. */
 const card = "rounded-[16px] border border-line bg-surface shadow-[0_2px_0_rgba(15,23,42,.035)]";
 const tileCard = "rounded-[14px] border border-line bg-surface shadow-[0_2px_0_rgba(15,23,42,.035)]";
-
-/** Search has no backend yet: drawn as in the Hi-fi but disabled and labelled. */
-export function HomeSearch() {
-  return (
-    <label className="flex h-[38px] max-w-[488px] items-center gap-3 rounded-[12px] border border-line bg-surface px-3">
-      <Search aria-hidden="true" size={18} strokeWidth={2} className="text-muted" />
-      <span className="sr-only">{copy.searchLabel}</span>
-      <input
-        type="search"
-        disabled
-        placeholder={copy.searchPlaceholder}
-        className="num min-w-0 flex-1 bg-transparent text-[13px] text-ink placeholder:text-muted disabled:cursor-default"
-      />
-    </label>
-  );
-}
 
 function SectionHeader({ id, title, subtitle, action }: { id: string; title: string; subtitle?: string; action?: ReactNode }) {
   return (

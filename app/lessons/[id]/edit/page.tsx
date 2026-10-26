@@ -23,9 +23,9 @@ export default async function EditLessonPage({ params }: PageProps<"/lessons/[id
 
   const everPublished = lesson.active !== null;
   return (
-    <AppShell currentPath="/library" signOutAction={signOut} {...(await shellContext(actor))} topBarStart={<BackLink href={`/lessons/${lesson.id}`} label={en.lesson.backToLesson} />}>
+    <AppShell currentPath="/library" signOutAction={signOut} {...(await shellContext(actor))}>
       <div className="mx-auto flex max-w-reading flex-col gap-6">
-        <BackLink href={`/lessons/${lesson.id}`} label={en.lesson.backToLesson} inline />
+        <BackLink href={`/lessons/${lesson.id}`} label={en.lesson.backToLesson} />
         <PageHeader title={en.lessonForm.editTitle} />
         <LessonForm
           action={updateLessonAction.bind(null, lesson.id)}

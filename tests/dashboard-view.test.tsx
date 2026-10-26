@@ -73,7 +73,7 @@ describe("DashboardView", () => {
 });
 
 describe("AppShell", () => {
-  it("links only to implemented routes (home, library) and offers a POST sign-out", () => {
+  it("links only to implemented routes (home, library, vocabulary) and offers a POST sign-out", () => {
     const signOut = async () => {};
     const { container } = render(
       <AppShell currentPath="/" signOutAction={signOut} account={{ initial: "V", name: "Vũ Mỹ Kỳ", roleLabel: "Learner" }}>
@@ -82,7 +82,7 @@ describe("AppShell", () => {
     );
     const sidebar = screen.getByRole("navigation", { name: "Learning navigation" });
     const links = within(sidebar).getAllByRole("link");
-    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/", "/library"]);
+    expect(links.map((link) => link.getAttribute("href"))).toEqual(["/", "/library", "/vocabulary"]);
     expect(links[0].getAttribute("aria-current")).toBe("page");
     for (const item of sidebar.querySelectorAll('[aria-disabled="true"]')) {
       expect(item.closest("a")).toBeNull();
@@ -94,6 +94,8 @@ describe("AppShell", () => {
     expect(container.querySelector('a[href*="sign-out"]')).toBeNull();
     // The account menu shows the user's name, not the role.
     expect(screen.getAllByText("Vũ Mỹ Kỳ").length).toBeGreaterThan(0);
+    // The Home header (search, language, bell, account) is the same on every page (DEC-045).
+    expect((screen.getByLabelText("Search (coming soon)").parentElement?.querySelector("input") as HTMLInputElement).disabled).toBe(true);
     // Notifications have no source: disabled, no unread indicator.
     for (const bell of screen.getAllByRole("button", { name: /Notifications/ })) {
       expect((bell as HTMLButtonElement).disabled).toBe(true);

@@ -12,6 +12,10 @@ import type { LessonFailure } from "@/modules/content/types";
 import { en } from "@/modules/i18n/en";
 import { getLanguage } from "@/modules/language/registry";
 import { getLessonRepository, requireLearner } from "@/server/lessons";
+import { getVocabularyRepository } from "@/server/vocabulary";
+import { SegmentReader } from "@/components/segment-reader";
+import { saveWordAction, similarWordsAction } from "@/app/vocabulary/actions";
+import { hasPermission } from "@/server/policy/permissions";
 import { signOut } from "../../actions";
 import { archiveLessonAction, publishLessonAction, unarchiveLessonAction } from "../actions";
 
@@ -59,11 +63,14 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/l
 
   const showing = lesson.active ?? lesson.draft;
   const archived = lesson.status === "archived";
+  // Words are saved only from the active, published version (DEC-044).
+  const canSaveWords = Boolean(lesson.active) && !archived && hasPermission(actor, "vocabulary.write_private");
+  const saved = canSaveWords ? await getVocabularyRepository().listLessonOccurrences(actor.userId, lesson.id) : [];
 
   return (
-    <AppShell currentPath="/library" signOutAction={signOut} {...(await shellContext(actor))} topBarStart={<BackLink href="/library" label={copy.backToLibrary} />}>
+    <AppShell currentPath="/library" signOutAction={signOut} {...(await shellContext(actor))}>
       <article className="mx-auto flex max-w-reading flex-col gap-6">
-        <BackLink href="/library" label={copy.backToLibrary} inline />
+        <BackLink href="/library" label={copy.backToLibrary} />
 
         <Card className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <LessonThumb code={lesson.languageCode} className="h-28 shrink-0 rounded-[12px] sm:h-32 sm:w-44" />
@@ -155,7 +162,23 @@ export default async function LessonPage({ params, searchParams }: PageProps<"/l
               {copy.content}{" "}
               {showing ? <span className="num text-supporting font-medium text-muted">{copy.version(showing.versionNo)}</span> : null}
             </h2>
-            <SegmentList segments={showing?.segments ?? []} languageCode={lesson.languageCode} />
+            {canSaveWords && lesson.active ? (
+              <SegmentReader
+                lessonId={lesson.id}
+                versionNo={lesson.active.versionNo}
+                language={lesson.languageCode}
+                htmlLang={getLanguage(lesson.languageCode).htmlLang}
+                segments={lesson.active.segments}
+                saved={saved}
+                action={saveWordAction}
+                similarAction={similarWordsAction}
+              />
+            ) : (
+              <>
+                {!lesson.active ? <p className="text-caption text-muted">{en.vocabulary.lessonNotReadyHint}</p> : null}
+                <SegmentList segments={showing?.segments ?? []} languageCode={lesson.languageCode} />
+              </>
+            )}
           </Card>
         </section>
       </article>

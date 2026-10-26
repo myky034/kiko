@@ -151,6 +151,8 @@ Spike Done nghĩa có kết luận và evidence, không có nghĩa production-re
 
 ### KIKO-009 — Vocabulary, pronunciation, deck và occurrence
 
+> **Trạng thái (22/10/2026):** migration đã áp lên Supabase dev; đã có lưu từ trong trang bài (bôi chọn hoặc nút “Add word”), My Vocabulary (list/cards, lọc, chi tiết, sao, lưu trữ, xóa), thêm/sửa từ, bộ từ, từ liên quan (DEC-044). Chờ chủ dự án thử trên trình duyệt.
+
 > **Bổ sung 21/10/2026:** thêm đánh dấu sao, tag, cách dùng, câu ví dụ (có audio tùy chọn), từ liên quan theo DATA_MODEL “Quiet Bloom”; trạng thái Learning/Weak/Mastered tính từ review (KIKO-016) theo luật có phiên bản; nhãn UI tiếng Anh (DEC-039). Là đầu vào của Practice (KIKO-029).
 
 **Phụ thuộc:** 008. **FR:** FR04–05.

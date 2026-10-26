@@ -63,7 +63,7 @@ const singleLine = (label: string, max: number, optional: boolean) =>
       error: en.lessonForm.errors.tooLong(label, max),
     });
 
-function parseTags(raw: string): { ok: true; tags: string[] } | { ok: false; error: string } {
+export function parseTags(raw: string): { ok: true; tags: string[] } | { ok: false; error: string } {
   const tags: string[] = [];
   for (const piece of raw.split(TAG_SEPARATOR)) {
     const tag = piece.trim();

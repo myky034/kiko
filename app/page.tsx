@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
-import { DashboardView, HomeSearch, type HomeLessons } from "@/components/dashboard-view";
+import { DashboardView, type HomeLessons } from "@/components/dashboard-view";
 import { listLessons } from "@/modules/content/lessons";
 import { loadDashboard, needsOnboarding } from "@/modules/identity/dashboard";
 import { getAccessDependencies, requireActiveActor } from "@/server/identity";
@@ -25,7 +25,7 @@ export default async function HomePage() {
   }
 
   return (
-    <AppShell currentPath="/" signOutAction={signOut} {...(await shellContext(actor))} topBarStart={<HomeSearch />}>
+    <AppShell currentPath="/" signOutAction={signOut} {...(await shellContext(actor))}>
       <DashboardView data={data} home={home} />
     </AppShell>
   );

@@ -25,9 +25,9 @@ export default async function DeleteLessonPage({ params }: PageProps<"/lessons/[
   const lesson = result.value;
 
   return (
-    <AppShell currentPath="/library" signOutAction={signOut} {...(await shellContext(actor))} topBarStart={<BackLink href={`/lessons/${lesson.id}`} label={copy.backToLesson} />}>
+    <AppShell currentPath="/library" signOutAction={signOut} {...(await shellContext(actor))}>
       <div className="mx-auto flex max-w-reading flex-col gap-6">
-        <BackLink href={`/lessons/${lesson.id}`} label={copy.backToLesson} inline />
+        <BackLink href={`/lessons/${lesson.id}`} label={copy.backToLesson} />
         <Card className="flex flex-col gap-5 border-danger-border">
           <div className="flex items-start gap-3">
             <span

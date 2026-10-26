@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Prisma, type PrismaClient } from "@/generated/prisma/client";
 import { isLanguageCode, type LanguageCode } from "@/modules/language/registry";
 import { SEGMENTATION_RULE } from "@/modules/content/segmentation";
+import { lockActiveActor } from "./actor-guard";
 import type {
   ActorGuard,
   LessonContent,
@@ -69,11 +70,7 @@ function asLanguage(code: string): LanguageCode {
 export function createPrismaLessonRepository(client: () => PrismaClient): LessonRepository {
   /** Re-checks the actor inside the transaction and locks the profile row. */
   async function lockActor(tx: Tx, guard: ActorGuard) {
-    const rows = await tx.$queryRaw<{ ok: number }[]>`
-      SELECT 1 AS ok FROM kiko.user_profile
-      WHERE id = ${guard.userId}::uuid AND state = 'active' AND authorization_revision = ${guard.authorizationRevision}
-      FOR SHARE`;
-    if (rows.length !== 1) throw new Abort("stale_authorization");
+    if (!(await lockActiveActor(tx, guard))) throw new Abort("stale_authorization");
   }
 
   async function failureFor(tx: Tx, ownerId: string, lessonId: string, expectedVersion: number): Promise<LessonFailure> {

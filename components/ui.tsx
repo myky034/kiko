@@ -133,15 +133,12 @@ export function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-/**
- * "Back to …" link. Desktop puts it in the shell top bar (pass it as topBarStart);
- * `inline` renders the mobile copy inside the page. Text on the mesh uses copy.
- */
-export function BackLink({ href, label, inline }: { href: string; label: string; inline?: boolean }) {
+/** "Back to …" link at the top of a page's content (the top bar is the same on every page, DEC-045). */
+export function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className={`items-center gap-2 self-start rounded-xs text-[14px] font-medium text-copy hover:text-ink ${inline ? "inline-flex md:hidden" : "inline-flex"}`}
+      className="inline-flex items-center gap-2 self-start rounded-xs text-[14px] font-medium text-copy hover:text-ink"
     >
       <ArrowLeft aria-hidden="true" size={16} strokeWidth={2} />
       {label}

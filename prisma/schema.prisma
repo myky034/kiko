@@ -57,6 +57,8 @@ model Language {
 
   preferences UserLanguagePreference[]
   lessons     Lesson[]
+  vocabulary  VocabularyItem[]
+  decks       Deck[]
 
   @@map("language")
   @@schema("kiko")
@@ -101,6 +103,8 @@ model UserProfile {
   admittedAccounts     AllowedAccount[]         @relation("AllowedAccountAdmittedBy")
   auditEvents          AuditEvent[]
   lessons              Lesson[]
+  vocabulary           VocabularyItem[]
+  decks                Deck[]
 
   @@unique([authProvider, authSubject])
   @@map("user_profile")
@@ -214,10 +218,11 @@ model Lesson {
   createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  owner              UserProfile         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  language           Language            @relation(fields: [languageCode], references: [code], onDelete: Restrict)
-  transcriptVersions TranscriptVersion[] @relation("LessonVersions")
-  activeTranscript   TranscriptVersion?  @relation("LessonActiveTranscript", fields: [activeTranscriptId, id], references: [id, lessonId], onDelete: NoAction, onUpdate: NoAction)
+  owner              UserProfile            @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  language           Language               @relation(fields: [languageCode], references: [code], onDelete: Restrict)
+  transcriptVersions TranscriptVersion[]    @relation("LessonVersions")
+  occurrences        VocabularyOccurrence[]
+  activeTranscript   TranscriptVersion?     @relation("LessonActiveTranscript", fields: [activeTranscriptId, id], references: [id, lessonId], onDelete: NoAction, onUpdate: NoAction)
 
   @@unique([id, ownerId, languageCode])
   @@unique([ownerId, clientRequestId])
@@ -241,9 +246,10 @@ model TranscriptVersion {
   createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   publishedAt      DateTime?       @map("published_at") @db.Timestamptz(6)
 
-  lesson         Lesson    @relation("LessonVersions", fields: [lessonId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: Cascade)
-  activeInLesson Lesson[]  @relation("LessonActiveTranscript")
+  lesson         Lesson                 @relation("LessonVersions", fields: [lessonId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: Cascade)
+  activeInLesson Lesson[]               @relation("LessonActiveTranscript")
   segments       Segment[]
+  occurrences    VocabularyOccurrence[]
 
   @@unique([lessonId, versionNo])
   @@unique([id, ownerId, languageCode])
@@ -261,9 +267,176 @@ model Segment {
   position            Int
   text                String
 
-  transcriptVersion TranscriptVersion @relation(fields: [transcriptVersionId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: Cascade)
+  transcriptVersion TranscriptVersion      @relation(fields: [transcriptVersionId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: Cascade)
+  occurrences       VocabularyOccurrence[]
 
   @@unique([transcriptVersionId, position])
+  /// Target of composite FKs from vocabulary occurrences (KIKO-009).
+  @@unique([id, ownerId, languageCode])
   @@map("segment")
+  @@schema("kiko")
+}
+
+// ---------------------------------------------------------------------------
+// Vocabulary (KIKO-009, PROJECT_SPEC FR04–FR05, DATA_MODEL §7, DEC-044).
+// Every child row carries owner_id + language_code and references its parent
+// through a composite FK, so cross-owner and cross-language links are rejected
+// by the database. Invariants, guards and grants: *_vocabulary_security.sql.
+
+/// A word or phrase saved by one learner in one language.
+model VocabularyItem {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId         String    @map("owner_id") @db.Uuid
+  languageCode    String    @map("language_code")
+  /// Exactly as typed (Unicode preserved).
+  surface         String
+  /// Duplicate-warning key: NFC + trimmed, lower-cased for English only (app-computed).
+  surfaceKey      String    @map("surface_key")
+  meaning         String
+  notes           String?
+  usage           String?
+  starred         Boolean   @default(false)
+  tags            String[]  @default([])
+  clientRequestId String?   @map("client_request_id")
+  version         Int       @default(1)
+  archivedAt      DateTime? @map("archived_at") @db.Timestamptz(6)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  owner         UserProfile            @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  language      Language               @relation(fields: [languageCode], references: [code], onDelete: Restrict)
+  readings      Pronunciation[]
+  examples      VocabularyExample[]
+  occurrences   VocabularyOccurrence[]
+  deckItems     DeckItem[]
+  relationsFrom VocabularyRelation[]   @relation("RelationFrom")
+  relationsTo   VocabularyRelation[]   @relation("RelationTo")
+
+  @@unique([id, ownerId, languageCode])
+  @@unique([ownerId, clientRequestId])
+  @@index([ownerId, languageCode, createdAt(sort: Desc), id])
+  @@index([ownerId, languageCode, surfaceKey])
+  @@index([tags], type: Gin)
+  @@map("vocabulary_item")
+  @@schema("kiko")
+}
+
+/// A reading: pinyin (zh), kana (ja) or IPA (en). Replaced as a set on edit.
+model Pronunciation {
+  id           String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId      String @map("owner_id") @db.Uuid
+  vocabularyId String @map("vocabulary_id") @db.Uuid
+  languageCode String @map("language_code")
+  notation     String
+  value        String
+  position     Int
+
+  vocabulary VocabularyItem @relation(fields: [vocabularyId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([vocabularyId, position])
+  @@map("pronunciation")
+  @@schema("kiko")
+}
+
+/// A sentence the word was saved from: always a segment of a published version.
+/// Words added by hand simply have no occurrence (DEC-044).
+model VocabularyOccurrence {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId             String   @map("owner_id") @db.Uuid
+  vocabularyId        String   @map("vocabulary_id") @db.Uuid
+  languageCode        String   @map("language_code")
+  lessonId            String   @map("lesson_id") @db.Uuid
+  transcriptVersionId String   @map("transcript_version_id") @db.Uuid
+  segmentId           String   @map("segment_id") @db.Uuid
+  /// Segment text at save time (published segments are immutable; kept for export/history).
+  sourceText          String   @map("source_text")
+  selectedText        String   @map("selected_text")
+  /// Code-point offsets into source_text, end exclusive (DEC-022 counting).
+  offsetStart         Int      @map("offset_start")
+  offsetEnd           Int      @map("offset_end")
+  createdAt           DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  vocabulary        VocabularyItem    @relation(fields: [vocabularyId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: NoAction)
+  lesson            Lesson            @relation(fields: [lessonId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Restrict, onUpdate: NoAction)
+  transcriptVersion TranscriptVersion @relation(fields: [transcriptVersionId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Restrict, onUpdate: NoAction)
+  segment           Segment           @relation(fields: [segmentId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Restrict, onUpdate: NoAction)
+
+  @@unique([vocabularyId, segmentId, offsetStart, offsetEnd])
+  @@index([ownerId, lessonId])
+  @@map("vocabulary_occurrence")
+  @@schema("kiko")
+}
+
+/// Example sentence typed by the learner (audio comes with KIKO-011).
+model VocabularyExample {
+  id           String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId      String  @map("owner_id") @db.Uuid
+  vocabularyId String  @map("vocabulary_id") @db.Uuid
+  languageCode String  @map("language_code")
+  position     Int
+  text         String
+  reading      String?
+  translation  String?
+
+  vocabulary VocabularyItem @relation(fields: [vocabularyId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([vocabularyId, position])
+  @@map("vocabulary_example")
+  @@schema("kiko")
+}
+
+/// Undirected link between two words of the same learner and language.
+model VocabularyRelation {
+  ownerId          String   @map("owner_id") @db.Uuid
+  fromVocabularyId String   @map("from_vocabulary_id") @db.Uuid
+  toVocabularyId   String   @map("to_vocabulary_id") @db.Uuid
+  languageCode     String   @map("language_code")
+  kind             String
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  from VocabularyItem @relation("RelationFrom", fields: [fromVocabularyId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: NoAction)
+  to   VocabularyItem @relation("RelationTo", fields: [toVocabularyId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([fromVocabularyId, toVocabularyId])
+  @@index([ownerId, toVocabularyId])
+  @@map("vocabulary_relation")
+  @@schema("kiko")
+}
+
+/// A learner's named word list in one language.
+model Deck {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId      String    @map("owner_id") @db.Uuid
+  languageCode String    @map("language_code")
+  title        String
+  version      Int       @default(1)
+  archivedAt   DateTime? @map("archived_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  owner    UserProfile @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  language Language    @relation(fields: [languageCode], references: [code], onDelete: Restrict)
+  items    DeckItem[]
+
+  @@unique([id, ownerId, languageCode])
+  @@index([ownerId, languageCode, archivedAt])
+  @@map("deck")
+  @@schema("kiko")
+}
+
+/// Membership of a word in a deck; removing it never deletes the word.
+model DeckItem {
+  deckId       String   @map("deck_id") @db.Uuid
+  vocabularyId String   @map("vocabulary_id") @db.Uuid
+  ownerId      String   @map("owner_id") @db.Uuid
+  languageCode String   @map("language_code")
+  addedAt      DateTime @default(now()) @map("added_at") @db.Timestamptz(6)
+
+  deck       Deck           @relation(fields: [deckId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: NoAction)
+  vocabulary VocabularyItem @relation(fields: [vocabularyId, ownerId, languageCode], references: [id, ownerId, languageCode], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([deckId, vocabularyId])
+  @@index([ownerId, vocabularyId])
+  @@map("deck_item")
   @@schema("kiko")
 }
